@@ -11,6 +11,7 @@ import java.util.UUID;
 
 /**
  * Ble中心设备基类
+ * 
  * @author Agua
  */
 @SuppressLint("MissingPermission")
@@ -39,12 +40,12 @@ public class BleCentralDeviceBase {
         //TODO 子类重写
     }
 
-    public byte[] onCharacteristicReadRequest(UUID characteristicUuid) {
+    protected byte[] onCharacteristicReadRequest(UUID characteristicUuid) {
         //TODO 子类重写
         return null;
     }
 
-    public void onCharacteristicWriteRequest(UUID characteristicUuid, byte[] requestingData) {
+    protected void onCharacteristicWriteRequest(UUID characteristicUuid, byte[] requestingData) {
         //TODO 子类重写
     }
 

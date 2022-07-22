@@ -38,8 +38,8 @@ public class BleService extends BleServiceBase<BleCentralDevice> {
     }
 
     @Override
-    protected BleCentralDeviceBase createClientDevice(BluetoothDevice device) {
-        return new BleCentralDevice(device, self);
+    protected BleCentralDeviceBase createCentralDevice(BluetoothDevice device) {
+        return new BleCentralDevice(device, this);
     }
 
     @Override

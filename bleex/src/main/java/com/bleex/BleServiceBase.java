@@ -177,9 +177,10 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      *
      * @param uuid
      */
-    public void addRequestCharacteristic(UUID uuid) {
+    public BluetoothGattCharacteristic addRequestCharacteristic(UUID uuid) {
         BluetoothGattCharacteristic requestCharacteristic = this.addCharacteristic(uuid, BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE | BluetoothGattCharacteristic.PROPERTY_NOTIFY, BluetoothGattCharacteristic.PERMISSION_WRITE | BluetoothGattCharacteristic.PERMISSION_READ);
         requestCharacteristics.add(requestCharacteristic);
+        return requestCharacteristic;
     }
 
     /**
@@ -204,9 +205,10 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      *
      * @param uuid
      */
-    public void addReceiveBytesCharacteristic(UUID uuid) {
+    public BluetoothGattCharacteristic addReceiveBytesCharacteristic(UUID uuid) {
         BluetoothGattCharacteristic receiveBytesCharacteristic = this.addCharacteristic(uuid, BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE | BluetoothGattCharacteristic.PROPERTY_NOTIFY, BluetoothGattCharacteristic.PERMISSION_WRITE | BluetoothGattCharacteristic.PERMISSION_READ);
         receiveBytesCharacteristics.add(receiveBytesCharacteristic);
+        return receiveBytesCharacteristic;
     }
 
     /**
@@ -231,9 +233,10 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      *
      * @param uuid
      */
-    public void addWriteBytesCharacteristic(UUID uuid) {
+    public BluetoothGattCharacteristic addWriteBytesCharacteristic(UUID uuid) {
         BluetoothGattCharacteristic writeBytesCharacteristic = this.addCharacteristic(uuid, BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE | BluetoothGattCharacteristic.PROPERTY_NOTIFY, BluetoothGattCharacteristic.PERMISSION_WRITE | BluetoothGattCharacteristic.PERMISSION_READ);
         writeBytesCharacteristics.add(writeBytesCharacteristic);
+        return writeBytesCharacteristic;
     }
 
     /**
@@ -258,11 +261,12 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      *
      * @param uuid
      */
-    public void addRequestBytesCharacteristic(UUID uuid) {
+    public BluetoothGattCharacteristic addRequestBytesCharacteristic(UUID uuid) {
         BluetoothGattCharacteristic requestBytesCharacteristic = this.addCharacteristic(uuid, BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE | BluetoothGattCharacteristic.PROPERTY_NOTIFY, BluetoothGattCharacteristic.PERMISSION_WRITE | BluetoothGattCharacteristic.PERMISSION_READ);
         requestBytesCharacteristics.add(requestBytesCharacteristic);
         receiveBytesCharacteristics.add(requestBytesCharacteristic);
         writeBytesCharacteristics.add(requestBytesCharacteristic);
+        return requestBytesCharacteristic;
     }
 
     /**
@@ -427,7 +431,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      * @param device
      * @return
      */
-    protected BleCentralDeviceBase createClientDevice(BluetoothDevice device) {
+    protected BleCentralDeviceBase createCentralDevice(BluetoothDevice device) {
         return new BleCentralDeviceBase(device, self);
     }
 

@@ -24,21 +24,21 @@ public class BleCentralDevice extends BleCentralDeviceBase {
     }
 
     @Override
-    public byte[] onCharacteristicReadRequest(UUID characteristicUuid) {
+    protected byte[] onCharacteristicReadRequest(UUID characteristicUuid) {
         BleLogger.log(TAG, "onCharacteristicReadRequest characteristicUuid:" + characteristicUuid.toString());
         //Read from central device
         if (characteristicUuid.equals(BleUUIDs.BASE_READ_TEST)) {
-            byte[] datas = new byte[20];
+            byte[] data = new byte[20];
             for (int i = 0; i < 20; i++) {
-                datas[i] = (byte) i;
+                data[i] = (byte) i;
             }
-            return datas;
+            return data;
         }
         return super.onCharacteristicReadRequest(characteristicUuid);
     }
 
     @Override
-    public void onCharacteristicWriteRequest(UUID characteristicUuid, byte[] requestingData) {
+    protected void onCharacteristicWriteRequest(UUID characteristicUuid, byte[] requestingData) {
         BleLogger.log(TAG, "onCharacteristicWriteRequest characteristicUuid:" + characteristicUuid.toString() + " ");
         if (characteristicUuid.equals(BleUUIDs.BASE_WRITE_TEST)) {
 
