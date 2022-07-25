@@ -15,6 +15,34 @@
 - 增加了接收长数据的功能，数据长度不受 `mtu` 限制。
 - 增加了对于带有长数据的请求的支持，可以返回给中心设备特定的长数据（类似于 Http 的 Post 的服务端功能），数据长度不受 `mtu` 限制。
 
+## 安装
+### 第一步
+在 `settings.gradle` 文件中的 `dependencyResolutionManagement` 下的 `repositories` 中添加 ` maven { url "https://jitpack.io" }`，如:
+```gradle
+dependencyResolutionManagement {
+    repositories {
+        ...
+        maven { url "https://jitpack.io" }
+    }
+}
+```
+或在根目录的 `build.gradle` 的结尾添加
+```gradle
+allprojects {
+		repositories {
+			...
+			maven { url 'https://www.jitpack.io' }
+		}
+	}
+```
+### 第二步
+在项目的 `build.gradle` 中添加依赖：
+```gradle
+dependencies {
+	implementation 'com.github.featherJ:BleEx:v0.9.1'
+}
+```
+
 ## 使用
 ### 初始化
 中心设备代理要继承自 `BleCentralDeviceBase` 实现自己的重新设备，如：
