@@ -29,17 +29,17 @@ dependencyResolutionManagement {
 或在根目录的 `build.gradle` 的结尾添加
 ```gradle
 allprojects {
-		repositories {
-			...
-			maven { url 'https://www.jitpack.io' }
-		}
+	repositories {
+		...
+		maven { url 'https://www.jitpack.io' }
 	}
+}
 ```
 ### 第二步
 在项目的 `build.gradle` 中添加依赖：
 ```gradle
 dependencies {
-	implementation 'com.github.featherJ:BleEx:0.9.0'
+    implementation 'com.github.featherJ:BleEx:0.9.0'
 }
 ```
 
