@@ -226,7 +226,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
         return false;
     }
 
-    private ArrayList<BluetoothGattCharacteristic> writeBytesCharacteristics = new ArrayList<>();
+    private final ArrayList<BluetoothGattCharacteristic> writeBytesCharacteristics = new ArrayList<>();
 
     /**
      * 添加一个可以写长数据的特征
@@ -418,7 +418,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
             //避免重复添加
             return;
         }
-        T curDevice = (T) this.createClientDevice(device);
+        T curDevice = (T) this.createCentralDevice(device);
         deviceMap.put(device.getAddress(), curDevice);
         for (BleCentralDeviceChangedCallback<T> callback : deviceChangedCallbacks) {
             callback.onAddDevice(curDevice);
@@ -565,7 +565,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
         return new byte[]{0};
     }
 
-    private HashMap<String, BytesRecevier> bytesReceviers = new HashMap();
+    private final HashMap<String, BytesRecevier> bytesReceivers = new HashMap<>();
 
     private void receiveBytes(BluetoothDevice device, UUID characteristicUuid, byte[] pack) {
         byte requestIndex = -1;
@@ -577,8 +577,8 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
 
         String key = device.getAddress() + "-" + characteristicUuid.toString() + "_" + Integer.toHexString(requestIndex & 0xFF);
         BytesRecevier receiver = null;
-        if (bytesReceviers.containsKey(key)) {
-            receiver = bytesReceviers.get(key);
+        if (bytesReceivers.containsKey(key)) {
+            receiver = bytesReceivers.get(key);
         } else {
             //没有这个接收器，证明原则上应该是首包才对，如果不是首包还没找到接收器，则直接忽视这个包，应该是之前包的遗漏部分。
             if (pack.length >= 3 && pack[1] == 120 && pack[2] == 110) {
@@ -612,10 +612,10 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
 
                     @Override
                     public void onFinish(BluetoothDevice device, UUID characteristicUuid, String key) {
-                        bytesReceviers.remove(key);
+                        bytesReceivers.remove(key);
                     }
                 });
-                bytesReceviers.put(key, newReceiver);
+                bytesReceivers.put(key, newReceiver);
                 receiver = newReceiver;
             }
         }
@@ -630,7 +630,6 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      * @param device
      * @param characteristicUuid
      * @param receivedData
-     * @return
      */
     private void onReceiveBytes(BluetoothDevice device, UUID characteristicUuid, byte[] receivedData) {
         if (isRequestBytesCharacteristic(characteristicUuid)) {
@@ -659,8 +658,8 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
         }
     }
 
-    private HashMap<String, BytesWriter> bytesWriters = new HashMap();
-    private HashMap<String, Byte> indexMap = new HashMap();
+    private final HashMap<String, BytesWriter> bytesWriters = new HashMap<>();
+    private final HashMap<String, Byte> indexMap = new HashMap<>();
 
     private byte getIndex(String type) {
         Byte existIndex = -128;
@@ -668,7 +667,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
             existIndex = indexMap.get(type);
         }
         existIndex++;
-        if (existIndex == 128) {
+        if (existIndex == 127) {
             existIndex = -128;
         }
         indexMap.put(type, existIndex);
