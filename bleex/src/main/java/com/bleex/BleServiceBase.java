@@ -775,6 +775,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
         @Override
         public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattCharacteristic characteristic) {
             if (!doFilterDevice(device, characteristic.getUuid())) {
+                disconnect(device);
                 return;
             }
             BleLogger.log(TAG, String.format("onCharacteristicReadRequest:%s,%s,%s,%s,%s", device.getName(), device.getAddress(), requestId, offset, characteristic.getUuid()));
@@ -784,6 +785,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
         @Override
         public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic, boolean preparedWrite, boolean responseNeeded, int offset, byte[] requestingData) {
             if (!doFilterDevice(device, characteristic.getUuid())) {
+                disconnect(device);
                 return;
             }
             // 获取客户端发过来的数据
