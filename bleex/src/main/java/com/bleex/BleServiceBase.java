@@ -633,7 +633,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      */
     private void onReceiveBytes(BluetoothDevice device, UUID characteristicUuid, byte[] receivedData) {
         if (isRequestBytesCharacteristic(characteristicUuid)) {
-            if (receivedData.length > 3 && receivedData[0] == 88 && receivedData[1] == 99) {
+            if (receivedData.length >= 3 && receivedData[0] == 88 && receivedData[1] == 99) {
                 byte reqeustId = receivedData[2];
                 byte[] requestingData = new byte[receivedData.length - 3];
                 ByteBuffer buffer = ByteBuffer.wrap(receivedData);
