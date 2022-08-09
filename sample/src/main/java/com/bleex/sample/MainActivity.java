@@ -7,6 +7,7 @@ import android.os.Bundle;
 
 import com.bleex.BleCentralDeviceChangedCallback;
 import com.bleex.BleLogger;
+import com.bleex.BluetoothStateChangedCallback;
 import com.bleex.sample.ble.BleCentralDevice;
 import com.bleex.sample.ble.BleService;
 import com.bleex.utils.PermissionsUtils;
@@ -22,7 +23,6 @@ public class MainActivity extends AppCompatActivity {
         PermissionsUtils.checkPermissions(MainActivity.this);
 
         BleService bleService = new BleService(this);
-        bleService.startAdvertising();
         bleService.addDeviceChangedListener(new BleCentralDeviceChangedCallback<BleCentralDevice>() {
             @Override
             public void onUpdateDevice(BleCentralDevice clientDevice) {
@@ -39,8 +39,26 @@ public class MainActivity extends AppCompatActivity {
                 BleLogger.log(TAG, "onRemoveDevice: " + clientDevice.getAddress());
             }
         });
-        bleService.startService();
+        bleService.addBluetoothStateChangedListener(new BluetoothStateChangedCallback() {
+            @Override
+            public void onStateChanged(boolean enable) {
+                if(enable){
+                    bleService.startAdvertising();
+                    bleService.startService();
+                }else{
+                    bleService.stopAdvertising();
+                    bleService.disconnectAll();
+                    bleService.stopService();
+                }
+            }
+        });
+        if(bleService.isEnable()){
+            bleService.startAdvertising();
+            bleService.startService();
+        }
     }
+
+
 
     @Override
     public final void onRequestPermissionsResult(int requestCode,

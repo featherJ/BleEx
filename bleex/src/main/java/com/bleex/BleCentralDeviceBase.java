@@ -21,13 +21,19 @@ public class BleCentralDeviceBase {
     private BleServiceBase _service;
     private String _address;
 
-
     public BleCentralDeviceBase(BluetoothDevice device, BleServiceBase service) {
         this._device = device;
         this._service = service;
         this._address = this._device.getAddress();
     }
 
+    /**
+     * 得到内部包含的蓝牙设备
+     * @return
+     */
+    public BluetoothDevice getDevice(){
+        return this._device;
+    }
     /**
      * 设备地址
      */

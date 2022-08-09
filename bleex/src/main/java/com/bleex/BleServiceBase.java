@@ -16,7 +16,11 @@ import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.BlendMode;
 import android.os.ParcelUuid;
 import android.util.Log;
 
@@ -40,10 +44,12 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
     private static final String TAG = "BleServiceBase";
 
     private final UUID uuidService;
-
+    private final BluetoothManager bluetoothManager;
+    private final BluetoothAdapter bluetoothAdapter;
     private final BluetoothGattService bleService;
-    private final BluetoothGattServer bluetoothGattServer; // BLE服务端
+    private BluetoothGattServer bluetoothGattServer; // BLE服务端
     private final BluetoothLeAdvertiser bluetoothLeAdvertiser; // BLE广播
+    private final Activity activity;
 
     private final HashMap<String, T> deviceMap = new HashMap<>();
 
@@ -53,14 +59,52 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
 
     public BleServiceBase(Activity activity, UUID serviceUuid) {
         this.self = this;
+        this.activity = activity;
 
         this.uuidService = serviceUuid;
-        BluetoothManager bluetoothManager = (BluetoothManager) activity.getSystemService(Context.BLUETOOTH_SERVICE);
-        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        this.bluetoothManager = (BluetoothManager) activity.getSystemService(Context.BLUETOOTH_SERVICE);
+        this.bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         this.bluetoothLeAdvertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
-        bleService = new BluetoothGattService(this.uuidService, BluetoothGattService.SERVICE_TYPE_PRIMARY);
-        bluetoothGattServer = bluetoothManager.openGattServer(activity, bluetoothGattServerCallback);
+        this.bleService = new BluetoothGattService(this.uuidService, BluetoothGattService.SERVICE_TYPE_PRIMARY);
+
+        BroadcastReceiver broadcastReceiver = new BluetoothStateBroadcastReceive();
+        IntentFilter intent = new IntentFilter();
+        intent.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        activity.registerReceiver(broadcastReceiver, intent);
+    }
+
+    class BluetoothStateBroadcastReceive extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            switch (action) {
+                case BluetoothAdapter.ACTION_STATE_CHANGED:
+                    int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
+                    switch (blueState) {
+                        case BluetoothAdapter.STATE_OFF:
+                            BleLogger.log(TAG,"Bluetooth disabled");
+                            onBluetoothChanged(false);
+                            break;
+                        case BluetoothAdapter.STATE_ON:
+                            BleLogger.log(TAG,"Bluetooth enabled");
+                            onBluetoothChanged(true);
+                            break;
+                    }
+                    break;
+            }
+        }
+    }
+
+    public boolean isEnable() {
+        return this.bluetoothAdapter.isEnabled();
+    }
+
+    private void onBluetoothChanged(boolean enable) {
+        for (BluetoothStateChangedCallback callback : bluetoothStateChangedCallbacks) {
+            callback.onStateChanged(enable);
+        }
     }
 
     /**
@@ -166,7 +210,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
             characteristicRead.addDescriptor(configDescriptor);
         }
         this.bleService.addCharacteristic(characteristicRead);
-        BleLogger.log(TAG,"Characteristic "+uuid.toString()+" added.");
+        BleLogger.log(TAG, "Characteristic " + uuid.toString() + " added.");
         return characteristicRead;
     }
 
@@ -298,6 +342,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      * 启动服务
      */
     public void startService() {
+        this.bluetoothGattServer = bluetoothManager.openGattServer(activity, bluetoothGattServerCallback);
         this.bluetoothGattServer.addService(this.bleService);
     }
 
@@ -306,6 +351,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      */
     public void stopService() {
         this.bluetoothGattServer.removeService(this.bleService);
+        this.bluetoothGattServer.close();
     }
 
 
@@ -374,6 +420,28 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
     public void removeDeviceChangedListener(BleCentralDeviceChangedCallback<T> callback) {
         deviceChangedCallbacks.remove(callback);
     }
+
+
+    private List<BluetoothStateChangedCallback> bluetoothStateChangedCallbacks = new ArrayList<BluetoothStateChangedCallback>();
+
+    /**
+     * 添加蓝牙状态改变回调
+     *
+     * @param callback
+     */
+    public void addBluetoothStateChangedListener(BluetoothStateChangedCallback callback) {
+        bluetoothStateChangedCallbacks.add(callback);
+    }
+
+    /**
+     * 添加蓝牙状态改变回调
+     *
+     * @param callback
+     */
+    public void removeBluetoothStateChangedListener(BluetoothStateChangedCallback callback) {
+        bluetoothStateChangedCallbacks.remove(callback);
+    }
+
 
     /**
      * 当更新了设备（子类可以重写，可以自己实现校验设备的方法）
@@ -489,7 +557,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      * @param requestingBytes
      */
     protected void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic, boolean preparedWrite, boolean responseNeeded, int offset, byte[] requestingBytes) {
-        if(responseNeeded){
+        if (responseNeeded) {
             bluetoothGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, null);
         }
         if (isRequestCharacteristic(characteristic.getUuid())) {
@@ -742,6 +810,26 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
     public void disconnect(BluetoothDevice device) {
         BluetoothGattServer bluetoothGattServer = this.getBluetoothGattServer();
         bluetoothGattServer.cancelConnection(device);
+        onRemoveDevice(device);
+    }
+
+    /**
+     * 取消连接某个设备
+     *
+     * @param device
+     */
+    public void disconnect(T device) {
+        this.disconnect(device.getDevice());
+    }
+
+    /**
+     * 取消连接所有的蓝牙设备
+     */
+    public void disconnectAll() {
+        List<T> devices = this.getDevices();
+        for (T device : devices) {
+            this.disconnect(device);
+        }
     }
 
 
@@ -769,7 +857,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
 
         @Override
         public void onServiceAdded(int status, BluetoothGattService service) {
-            BleLogger.log(TAG, status == 0 ? "Add service " + service.getUuid() + " succeeded." : "Add service " + service.getUuid() + " failed with status: " + status+".");
+            BleLogger.log(TAG, status == 0 ? "Add service " + service.getUuid() + " succeeded." : "Add service " + service.getUuid() + " failed with status: " + status + ".");
         }
 
         @Override
