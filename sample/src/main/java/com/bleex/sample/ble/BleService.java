@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.content.ContextWrapper;
 
 import com.bleex.BleCentralDeviceBase;
 import com.bleex.BleServiceBase;
@@ -13,7 +14,7 @@ import java.util.UUID;
 
 @SuppressLint("MissingPermission")
 public class BleService extends BleServiceBase<BleCentralDevice> {
-    public BleService(Activity activity) {
+    public BleService(ContextWrapper activity) {
         super(activity, BleUUIDs.SERVICE);
         this.initCharacteristics();
     }

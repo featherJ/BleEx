@@ -1,7 +1,6 @@
 package com.bleex;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -18,11 +17,10 @@ import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.BlendMode;
 import android.os.ParcelUuid;
-import android.util.Log;
 
 import com.bleex.helpers.BytesRecevier;
 import com.bleex.helpers.BytesWriter;
@@ -49,7 +47,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
     private final BluetoothGattService bleService;
     private BluetoothGattServer bluetoothGattServer; // BLE服务端
     private final BluetoothLeAdvertiser bluetoothLeAdvertiser; // BLE广播
-    private final Activity activity;
+    private final ContextWrapper context;
 
     private final HashMap<String, T> deviceMap = new HashMap<>();
 
@@ -57,12 +55,12 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
 
     private int packageSize = 20;
 
-    public BleServiceBase(Activity activity, UUID serviceUuid) {
+    public BleServiceBase(ContextWrapper context, UUID serviceUuid) {
         this.self = this;
-        this.activity = activity;
+        this.context = context;
 
         this.uuidService = serviceUuid;
-        this.bluetoothManager = (BluetoothManager) activity.getSystemService(Context.BLUETOOTH_SERVICE);
+        this.bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         this.bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         this.bluetoothLeAdvertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
@@ -71,7 +69,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
         BroadcastReceiver broadcastReceiver = new BluetoothStateBroadcastReceive();
         IntentFilter intent = new IntentFilter();
         intent.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        activity.registerReceiver(broadcastReceiver, intent);
+        context.registerReceiver(broadcastReceiver, intent);
     }
 
     class BluetoothStateBroadcastReceive extends BroadcastReceiver {
@@ -342,7 +340,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      * 启动服务
      */
     public void startService() {
-        this.bluetoothGattServer = bluetoothManager.openGattServer(activity, bluetoothGattServerCallback);
+        this.bluetoothGattServer = bluetoothManager.openGattServer(context, bluetoothGattServerCallback);
         this.bluetoothGattServer.addService(this.bleService);
     }
 
