@@ -49,7 +49,7 @@ public class BytesUtil {
      * @return
      */
     public static String bytesToHex(byte[] bytes) {
-        return bytesToString(bytes, true);
+        return bytesToString(bytes, false);
     }
 
     public static boolean equals(byte[] a, byte[] b) {

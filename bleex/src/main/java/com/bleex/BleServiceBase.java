@@ -30,7 +30,58 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
+
+abstract class NotifyCharacteristicCallback {
+    public abstract void onComplete(boolean result);
+}
+
+@SuppressLint("MissingPermission")
+class NotifyCharacteristic {
+    private static final String TAG = "NotifyCharacteristic";
+    BluetoothGattServer bluetoothGattServer;
+    BluetoothDevice device;
+    byte[] value;
+    BluetoothGattCharacteristic characteristic;
+    boolean confirm;
+    NotifyCharacteristicCallback callback;
+
+    public NotifyCharacteristic(BluetoothGattServer bluetoothGattServer, BluetoothDevice device, BluetoothGattCharacteristic characteristic, byte[] value, boolean confirm, NotifyCharacteristicCallback callback) {
+        this.bluetoothGattServer = bluetoothGattServer;
+        this.device = device;
+        this.value = value;
+        this.characteristic = characteristic;
+        this.confirm = confirm;
+        this.callback = callback;
+    }
+
+    public void run() {
+        if (disposed) {
+            return;
+        }
+        this.characteristic.getValue();
+        this.characteristic.setValue(this.value);
+        BleLogger.log(TAG, String.format("notifyCharacteristicChanged:%s,%s,%s,%s", device.getName(), device.getAddress(), characteristic.getUuid(),
+                BytesUtil.bytesToHex(characteristic.getValue())));
+        boolean result = this.bluetoothGattServer.notifyCharacteristicChanged(this.device, this.characteristic, this.confirm);
+        if (this.callback != null) {
+            this.callback.onComplete(result);
+        }
+        this.dispose();
+    }
+
+    private boolean disposed = false;
+
+    public void dispose() {
+        this.bluetoothGattServer = null;
+        this.device = null;
+        this.value = null;
+        this.characteristic = null;
+        this.callback = null;
+    }
+}
 
 /**
  * Ble蓝牙服务基类
@@ -39,6 +90,7 @@ import java.util.UUID;
  */
 @SuppressLint("MissingPermission")
 public class BleServiceBase<T extends BleCentralDeviceBase> {
+
     private static final String TAG = "BleServiceBase";
 
     private final UUID uuidService;
@@ -82,11 +134,11 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
                     int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
                     switch (blueState) {
                         case BluetoothAdapter.STATE_OFF:
-                            BleLogger.log(TAG,"Bluetooth disabled");
+                            BleLogger.log(TAG, "Bluetooth disabled");
                             onBluetoothChanged(false);
                             break;
                         case BluetoothAdapter.STATE_ON:
-                            BleLogger.log(TAG,"Bluetooth enabled");
+                            BleLogger.log(TAG, "Bluetooth enabled");
                             onBluetoothChanged(true);
                             break;
                     }
@@ -118,6 +170,93 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
     public BluetoothGattServer getBluetoothGattServer() {
         return this.bluetoothGattServer;
     }
+
+//    private long safeStamp = 0;
+//
+//    private void _ensureSafe(boolean create, boolean wait) {
+//        long now = System.currentTimeMillis();
+//        if (wait) {
+//            long leftTime = safeStamp - now;
+//            BleLogger.log(TAG, "剩余不安全时间为 " + leftTime + " ms");
+//            if (leftTime > 0) {
+//                BleLogger.log(TAG, "要等待 " + leftTime + " ms 现在的时间是: " + now);
+//                try {
+//                    Thread.sleep(leftTime);
+//                } catch (Exception e) {
+//                }
+//                BleLogger.log(TAG, "等待了 " + leftTime + " ms 现在的时间是: " + System.currentTimeMillis());
+//            }
+//        }
+//        now = System.currentTimeMillis();
+//        if (create) {
+//            safeStamp = now + 30;//30毫秒后安全
+//        }
+//    }
+
+
+//    /**
+//     * 通知特征改变
+//     *
+//     * @param device
+//     * @param characteristic
+//     * @param confirm
+//     * @return
+//     */
+//    public boolean notifyCharacteristicChanged(BluetoothDevice device, BluetoothGattCharacteristic characteristic, boolean confirm) {
+//        // 确保已经进入了安全的时间
+//        _ensureSafe(false, true);
+//        long now = System.currentTimeMillis();
+//        BleLogger.log(TAG, "调用了真实的发送，距离上一次的时间间隔是：" + (now - tempStamp));
+//        tempStamp = now;
+//        boolean result = bluetoothGattServer.notifyCharacteristicChanged(device, characteristic, confirm);
+//        // 声明下一段不太安全的时间
+//        _ensureSafe(true, false);
+//        return result;
+//    }
+
+    Timer notifyTimer;
+    private List<NotifyCharacteristic> notifyCharacteristicList = new ArrayList<>();
+
+    public void notifyCharacteristicChanged(BluetoothDevice device, BluetoothGattCharacteristic characteristic, byte[] value, boolean confirm, NotifyCharacteristicCallback callback) {
+        notifyCharacteristicList.add(new NotifyCharacteristic(getBluetoothGattServer(), device, characteristic, value, confirm, callback));
+        notifyNext();
+    }
+
+    private long tempStamp = 0;
+
+    private void notifyNext() {
+        if (notifyTimer != null) {
+            return;
+        }
+        notifyTimer = new Timer();
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                if (notifyCharacteristicList.size() == 0) {
+                    notifyTimer.cancel();
+                    notifyTimer = null;
+                    return;
+                }
+                NotifyCharacteristic notifyItem = notifyCharacteristicList.remove(0);
+                long now = System.currentTimeMillis();
+                tempStamp = now;
+                notifyItem.run();
+            }
+        };
+        notifyTimer.schedule(task, 0, 30);
+    }
+
+    private void disposeNotifies() {
+        if (notifyTimer != null) {
+            notifyTimer.cancel();
+            notifyTimer = null;
+        }
+        while (notifyCharacteristicList.size() > 0) {
+            NotifyCharacteristic notifyItem = notifyCharacteristicList.remove(0);
+            notifyItem.dispose();
+        }
+    }
+
 
     private boolean isAdvertising = false;
 
@@ -572,10 +711,8 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
                 for (int i = 0; i < response.length; i++) {
                     finalResponse[i + 1] = response[i];
                 }
-                BluetoothGattServer bluetoothGattServer = this.getBluetoothGattServer();
-                characteristic.setValue(finalResponse);
                 //将请求结果发送给主设备
-                bluetoothGattServer.notifyCharacteristicChanged(device, characteristic, false);
+                this.notifyCharacteristicChanged(device, characteristic, finalResponse, false, null);
             }
             return;
         } else if (isReceiveBytesCharacteristic(characteristic.getUuid())) {
@@ -651,10 +788,8 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
                 BytesRecevier newReceiver = new BytesRecevier(key, requestIndex, device, characteristicUuid);
                 newReceiver.setCallback(new BytesRecevier.BytesReceiveCallback() {
                     private void sendResult(BluetoothDevice device, UUID characteristicUuid, byte requestIndex, byte result) {
-                        BluetoothGattServer bluetoothGattServer = getBluetoothGattServer();
                         BluetoothGattCharacteristic characteristic = getCharacteristic(characteristicUuid);
-                        characteristic.setValue(new byte[]{120, 120, requestIndex, result});
-                        bluetoothGattServer.notifyCharacteristicChanged(device, characteristic, false);
+                        notifyCharacteristicChanged(device, characteristic, new byte[]{120, 120, requestIndex, result}, false, null);
                     }
 
                     @Override
@@ -753,7 +888,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
             String key = BytesWriter.createKey(device, characteristicUuid, writeIndex);
             BluetoothGattServer bluetoothGattServer = this.getBluetoothGattServer();
             BluetoothGattCharacteristic characteristic = this.getCharacteristic(characteristicUuid);
-            BytesWriter writer = new BytesWriter(writeIndex, getPackageSize(), key, device, bluetoothGattServer, characteristic);
+            BytesWriter writer = new BytesWriter(writeIndex, getPackageSize(), key, device, this, characteristic);
             bytesWriters.put(key, writer);
             writer.setCallback(new BytesWriter.WriteBytesCallback() {
                 @Override

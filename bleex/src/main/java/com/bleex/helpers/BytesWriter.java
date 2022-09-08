@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattServer;
 
 import com.bleex.BleLogger;
+import com.bleex.BleServiceBase;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -69,15 +70,15 @@ public class BytesWriter {
     int packageSize;
     String key;
     BluetoothDevice device;
-    BluetoothGattServer bluetoothGattServer;
+    BleServiceBase service;
     BluetoothGattCharacteristic characteristic;
 
-    public BytesWriter(byte writeIndex, int packageSize, String key, BluetoothDevice device, BluetoothGattServer bluetoothGattServer, BluetoothGattCharacteristic characteristic) {
+    public BytesWriter(byte writeIndex, int packageSize, String key, BluetoothDevice device, BleServiceBase service, BluetoothGattCharacteristic characteristic) {
         this.writeIndex = writeIndex;
         this.packageSize = packageSize;
         this.key = key;
         this.device = device;
-        this.bluetoothGattServer = bluetoothGattServer;
+        this.service = service;
         this.characteristic = characteristic;
     }
 
@@ -175,8 +176,7 @@ public class BytesWriter {
             public void run() {
                 if (packages.size() > 0 && !completed) {
                     byte[] pack = packages.remove(0);
-                    characteristic.setValue(pack);
-                    bluetoothGattServer.notifyCharacteristicChanged(device, characteristic, false);
+                    service.notifyCharacteristicChanged(device, characteristic,pack,false,null);
                 } else {
                     sendTimer.cancel();
                     sendTimer = null;
@@ -262,7 +262,7 @@ public class BytesWriter {
     private void clear() {
         this.cancelTimer();
         this.device = null;
-        this.bluetoothGattServer = null;
+        this.service = null;
         this.characteristic = null;
         this.callback = null;
     }

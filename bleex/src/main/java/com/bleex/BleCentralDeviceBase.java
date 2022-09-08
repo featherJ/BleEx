@@ -98,10 +98,8 @@ public class BleCentralDeviceBase {
      * @throws Exception
      */
     public void notifyCharacteristic(UUID characteristicUuid, byte[] data){
-        BluetoothGattServer bluetoothGattServer = this._service.getBluetoothGattServer();
         BluetoothGattCharacteristic characteristic = this._service.getCharacteristic(characteristicUuid);
-        characteristic.setValue(data);
-        bluetoothGattServer.notifyCharacteristicChanged(this._device, characteristic, false);
+        this._service.notifyCharacteristicChanged(this._device, characteristic,data, false,null);
     }
 
     /**
