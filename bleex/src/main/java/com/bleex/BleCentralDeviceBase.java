@@ -12,7 +12,7 @@ import java.util.UUID;
 /**
  * Ble中心设备基类
  * 
- * @author Agua
+ * @author Agua.L
  */
 @SuppressLint("MissingPermission")
 public class BleCentralDeviceBase {

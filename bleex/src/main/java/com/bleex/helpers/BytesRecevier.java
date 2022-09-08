@@ -13,7 +13,7 @@ import java.util.UUID;
 /**
  * 长数据接收器
  *
- * @author Agua
+ * @author Agua.L
  */
 public class BytesRecevier {
     //超时时间2秒
@@ -22,7 +22,7 @@ public class BytesRecevier {
     /**
      * 长数据接收器的回调
      *
-     * @author Agua
+     * @author Agua.L
      */
     public static abstract class BytesReceiveCallback {
         public void onReceive(BluetoothDevice device, UUID characteristicUuid, byte requestIndex, byte[] data) {

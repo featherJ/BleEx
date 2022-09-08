@@ -3,7 +3,7 @@ package com.bleex.utils;
 /**
  * 二进制工具
  *
- * @author Agua
+ * @author Agua.L
  */
 public class BytesUtil {
     /**

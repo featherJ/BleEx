@@ -5,7 +5,7 @@ import android.util.Log;
 /**
  * Ble内部日志输出工具
  *
- * @author Agua
+ * @author Agua.L
  */
 public class BleLogger {
     /**

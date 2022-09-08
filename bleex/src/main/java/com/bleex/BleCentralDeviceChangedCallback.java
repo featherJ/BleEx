@@ -3,7 +3,7 @@ package com.bleex;
 /**
  * Ble服务的中心设备改变回调函数
  *
- * @author Agua
+ * @author Agua.L
  */
 public abstract class BleCentralDeviceChangedCallback<T extends BleCentralDeviceBase> {
     /**

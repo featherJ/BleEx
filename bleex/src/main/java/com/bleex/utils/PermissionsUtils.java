@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * 权限工具
  *
- * @author Agua
+ * @author Agua.L
  */
 public class PermissionsUtils {
     private static final int REQUEST_CODE_PERMISSION_LOCATION = 16;

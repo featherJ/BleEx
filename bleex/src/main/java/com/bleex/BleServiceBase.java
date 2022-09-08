@@ -86,7 +86,7 @@ class NotifyCharacteristic {
 /**
  * Ble蓝牙服务基类
  *
- * @author Agua
+ * @author Agua.L
  */
 @SuppressLint("MissingPermission")
 public class BleServiceBase<T extends BleCentralDeviceBase> {

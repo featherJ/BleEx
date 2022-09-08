@@ -3,7 +3,7 @@ package com.bleex;
 /**
  * 蓝牙状态改变回调
  *
- * @author Agua
+ * @author Agua.L
  */
 public abstract class BluetoothStateChangedCallback {
     /**

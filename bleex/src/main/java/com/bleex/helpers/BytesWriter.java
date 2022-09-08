@@ -18,7 +18,7 @@ import java.util.UUID;
 /**
  * 长数据发送器
  *
- * @author Agua
+ * @author Agua.L
  */
 @SuppressLint("MissingPermission")
 public class BytesWriter {
