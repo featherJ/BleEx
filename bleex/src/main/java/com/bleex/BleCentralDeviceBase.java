@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattServer;
+import android.content.Context;
 
 import com.bleex.helpers.BytesWriter;
 
@@ -11,7 +12,7 @@ import java.util.UUID;
 
 /**
  * Ble中心设备基类
- * 
+ *
  * @author Agua.L
  */
 @SuppressLint("MissingPermission")
@@ -19,21 +20,34 @@ public class BleCentralDeviceBase {
 
     private BluetoothDevice _device;
     private BleServiceBase _service;
+    private Context _context;
     private String _address;
 
-    public BleCentralDeviceBase(BluetoothDevice device, BleServiceBase service) {
+    public BleCentralDeviceBase(BluetoothDevice device, BleServiceBase service, Context context) {
         this._device = device;
         this._service = service;
+        this._context = context;
         this._address = this._device.getAddress();
     }
 
     /**
      * 得到内部包含的蓝牙设备
+     *
      * @return
      */
-    public BluetoothDevice getDevice(){
+    public BluetoothDevice getDevice() {
         return this._device;
     }
+
+    /**
+     * 上下文
+     *
+     * @return
+     */
+    public Context getContext() {
+        return this._context;
+    }
+
     /**
      * 设备地址
      */
@@ -97,9 +111,9 @@ public class BleCentralDeviceBase {
      * @param data
      * @throws Exception
      */
-    public void notifyCharacteristic(UUID characteristicUuid, byte[] data){
+    public void notifyCharacteristic(UUID characteristicUuid, byte[] data) {
         BluetoothGattCharacteristic characteristic = this._service.getCharacteristic(characteristicUuid);
-        this._service.notifyCharacteristicChanged(this._device, characteristic,data, false,null);
+        this._service.notifyCharacteristicChanged(this._device, characteristic, data, false, null);
     }
 
     /**
@@ -126,5 +140,6 @@ public class BleCentralDeviceBase {
         this.isDisposed = true;
         this._device = null;
         this._service = null;
+        this._context = null;
     }
 }

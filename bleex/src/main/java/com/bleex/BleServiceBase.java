@@ -99,7 +99,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
     private final BluetoothGattService bleService;
     private BluetoothGattServer bluetoothGattServer; // BLE服务端
     private final BluetoothLeAdvertiser bluetoothLeAdvertiser; // BLE广播
-    private final ContextWrapper context;
+    private final Context context;
 
     private final HashMap<String, T> deviceMap = new HashMap<>();
 
@@ -107,7 +107,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
 
     private int packageSize = 20;
 
-    public BleServiceBase(ContextWrapper context, UUID serviceUuid) {
+    public BleServiceBase(Context context, UUID serviceUuid) {
         this.self = this;
         this.context = context;
 
@@ -637,7 +637,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      * @return
      */
     protected BleCentralDeviceBase createCentralDevice(BluetoothDevice device) {
-        return new BleCentralDeviceBase(device, self);
+        return new BleCentralDeviceBase(device, self, self.context);
     }
 
     /**
