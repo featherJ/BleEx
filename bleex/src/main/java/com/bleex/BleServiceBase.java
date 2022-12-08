@@ -99,7 +99,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
     private final BluetoothGattService bleService;
     private BluetoothGattServer bluetoothGattServer; // BLE服务端
     private final BluetoothLeAdvertiser bluetoothLeAdvertiser; // BLE广播
-    private final Context context;
+    protected final Context context;
 
     private final HashMap<String, T> deviceMap = new HashMap<>();
 
