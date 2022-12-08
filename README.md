@@ -39,7 +39,7 @@ allprojects {
 在项目的 `build.gradle` 中添加依赖：
 ```gradle
 dependencies {
-    implementation 'com.github.featherJ:BleEx:0.9.4'
+    implementation 'com.github.featherJ:BleEx:0.9.5'
 }
 ```
 
