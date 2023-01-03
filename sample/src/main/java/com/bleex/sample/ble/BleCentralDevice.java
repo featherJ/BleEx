@@ -1,6 +1,7 @@
 package com.bleex.sample.ble;
 
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 
 import com.bleex.BleCentralDeviceBase;
 import com.bleex.BleLogger;
@@ -13,8 +14,8 @@ import java.util.UUID;
 public class BleCentralDevice extends BleCentralDeviceBase {
     private static final String TAG = "BleCentralDevice";
 
-    public BleCentralDevice(BluetoothDevice device, BleServiceBase service) {
-        super(device, service);
+    public BleCentralDevice(BluetoothDevice device, BleServiceBase service, Context context) {
+        super(device, service, context);
     }
 
     @Override
@@ -47,7 +48,11 @@ public class BleCentralDevice extends BleCentralDeviceBase {
             for (int i = 0; i < 10; i++) {
                 datas[i] = 1;
             }
-            this.notifyCharacteristic(BleUUIDs.BASE_NOTIFY_TEST, datas);
+            try {
+                this.notifyCharacteristic(BleUUIDs.BASE_NOTIFY_TEST, datas);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         super.onCharacteristicWriteRequest(characteristicUuid, requestingData);
     }
@@ -72,9 +77,9 @@ public class BleCentralDevice extends BleCentralDeviceBase {
         BleLogger.log(TAG, "onRequestBytes characteristicUuid:" + characteristicUuid.toString() + " requestingData: (length:" + requestingData.length + ") " + BytesUtil.bytesToHex(requestingData));
         //Request large bytes from central device
         if (characteristicUuid.equals(BleUUIDs.REQUEST_LARGE_DATA_TEST)) {
-            byte[] data = new byte[requestingData.length];
-            for (int i = 0; i < requestingData.length; i++) {
-                data[i] = (byte) (requestingData[i] + 1);
+            byte[] data = new byte[100000];
+            for (int i = 0; i < 100000; i++) {
+                data[i] = (byte) 9;
             }
             return data;
         }
@@ -96,21 +101,25 @@ public class BleCentralDevice extends BleCentralDeviceBase {
         for (int i = 0; i < 2000; i++) {
             datas[i] = 2;
         }
-        this.writeBytes(BleUUIDs.WRITE_LARGE_DATA_TO_CENTRAL_TEST, datas, new BytesWriter.WriteBytesCallback() {
-            @Override
-            public void onSent() {
-                BleLogger.log(TAG, "Write large bytes to " + BleUUIDs.WRITE_LARGE_DATA_TO_CENTRAL_TEST.toString() + " succeeded.");
-            }
+        try {
+            this.writeBytes(BleUUIDs.WRITE_LARGE_DATA_TO_CENTRAL_TEST, datas, new BytesWriter.WriteBytesCallback() {
+                @Override
+                public void onSent() {
+                    BleLogger.log(TAG, "Write large bytes to " + BleUUIDs.WRITE_LARGE_DATA_TO_CENTRAL_TEST.toString() + " succeeded.");
+                }
 
-            @Override
-            public void onError() {
-                BleLogger.log(TAG, "Error writing large bytes to " + BleUUIDs.WRITE_LARGE_DATA_TO_CENTRAL_TEST.toString() + ".");
-            }
+                @Override
+                public void onError() {
+                    BleLogger.log(TAG, "Error writing large bytes to " + BleUUIDs.WRITE_LARGE_DATA_TO_CENTRAL_TEST.toString() + ".");
+                }
 
-            @Override
-            public void onTimeout() {
-                BleLogger.log(TAG, "Timeout writing large bytes to " + BleUUIDs.WRITE_LARGE_DATA_TO_CENTRAL_TEST.toString() + ".");
-            }
-        });
+                @Override
+                public void onTimeout() {
+                    BleLogger.log(TAG, "Timeout writing large bytes to " + BleUUIDs.WRITE_LARGE_DATA_TO_CENTRAL_TEST.toString() + ".");
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

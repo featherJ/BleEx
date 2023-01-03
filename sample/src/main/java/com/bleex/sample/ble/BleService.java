@@ -40,7 +40,7 @@ public class BleService extends BleServiceBase<BleCentralDevice> {
 
     @Override
     protected BleCentralDeviceBase createCentralDevice(BluetoothDevice device) {
-        return new BleCentralDevice(device, this);
+        return new BleCentralDevice(device, this,this.context);
     }
 
     @Override

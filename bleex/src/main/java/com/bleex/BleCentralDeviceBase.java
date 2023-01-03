@@ -111,7 +111,10 @@ public class BleCentralDeviceBase {
      * @param data
      * @throws Exception
      */
-    public void notifyCharacteristic(UUID characteristicUuid, byte[] data) {
+    public void notifyCharacteristic(UUID characteristicUuid, byte[] data) throws Exception {
+        if (isDisposed) {
+            throw new Exception("Can not call writeBytes after device disposed.");
+        }
         BluetoothGattCharacteristic characteristic = this._service.getCharacteristic(characteristicUuid);
         this._service.notifyCharacteristicChanged(this._device, characteristic, data, false, null);
     }
@@ -123,7 +126,10 @@ public class BleCentralDeviceBase {
      * @param data
      * @param callback
      */
-    public void writeBytes(UUID characteristicUuid, byte[] data, BytesWriter.WriteBytesCallback callback) {
+    public void writeBytes(UUID characteristicUuid, byte[] data, BytesWriter.WriteBytesCallback callback) throws Exception {
+        if (isDisposed) {
+            throw new Exception("Can not call writeBytes after device disposed.");
+        }
         this._service.writeBytes(this._device, characteristicUuid, data, callback);
     }
 
@@ -135,6 +141,13 @@ public class BleCentralDeviceBase {
     }
 
     private boolean isDisposed = false;
+
+    /**
+     * 是否已经释放了
+     */
+    public boolean getIsDisposed() {
+        return isDisposed;
+    }
 
     public void dispose() {
         this.isDisposed = true;
