@@ -5,12 +5,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 
-import com.bleex.BleCentralDeviceChangedCallback;
+import com.bleex.old.BleCentralDeviceChangedCallback;
 import com.bleex.BleLogger;
-import com.bleex.BluetoothStateChangedCallback;
+import com.bleex.old.BluetoothStateChangedCallback;
 import com.bleex.sample.ble.BleCentralDevice;
 import com.bleex.sample.ble.BleService;
-import com.bleex.utils.PermissionsUtils;
+import com.bleex.old.utils.PermissionsUtils;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";

@@ -1,12 +1,11 @@
-package com.bleex.helpers;
+package com.bleex.old.helpers;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattServer;
 
 import com.bleex.BleLogger;
-import com.bleex.BleServiceBase;
+import com.bleex.old.BleServiceBase;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

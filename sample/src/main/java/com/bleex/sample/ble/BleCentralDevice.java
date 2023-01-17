@@ -3,11 +3,11 @@ package com.bleex.sample.ble;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 
-import com.bleex.BleCentralDeviceBase;
+import com.bleex.old.BleCentralDeviceBase;
 import com.bleex.BleLogger;
-import com.bleex.BleServiceBase;
-import com.bleex.helpers.BytesWriter;
-import com.bleex.utils.BytesUtil;
+import com.bleex.old.BleServiceBase;
+import com.bleex.old.helpers.BytesWriter;
+import com.bleex.old.utils.BytesUtil;
 
 import java.util.UUID;
 

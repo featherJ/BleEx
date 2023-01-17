@@ -1,12 +1,11 @@
-package com.bleex;
+package com.bleex.old;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattServer;
 import android.content.Context;
 
-import com.bleex.helpers.BytesWriter;
+import com.bleex.old.helpers.BytesWriter;
 
 import java.util.UUID;
 

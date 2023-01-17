@@ -1,14 +1,13 @@
 package com.bleex.sample.ble;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.ContextWrapper;
 
-import com.bleex.BleCentralDeviceBase;
-import com.bleex.BleServiceBase;
-import com.bleex.utils.BytesUtil;
+import com.bleex.old.BleCentralDeviceBase;
+import com.bleex.old.BleServiceBase;
+import com.bleex.old.utils.BytesUtil;
 
 import java.util.UUID;
 

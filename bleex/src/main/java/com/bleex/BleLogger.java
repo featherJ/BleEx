@@ -8,6 +8,7 @@ import android.util.Log;
  * @author Agua.L
  */
 public class BleLogger {
+    public static boolean enable = true;
     /**
      * ble内容输出
      *
@@ -15,6 +16,8 @@ public class BleLogger {
      * @param msg
      */
     public static void log(String tag, String msg) {
-        Log.i("[BleLog: " + tag + "]", msg);
+        if(enable){
+            Log.i("[BleLog: " + tag + "]", msg);
+        }
     }
 }

@@ -1,4 +1,4 @@
-package com.bleex;
+package com.bleex.old;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
@@ -17,14 +17,14 @@ import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.ParcelUuid;
 
-import com.bleex.helpers.BytesRecevier;
-import com.bleex.helpers.BytesWriter;
-import com.bleex.utils.BytesUtil;
+import com.bleex.BleLogger;
+import com.bleex.old.helpers.BytesRecevier;
+import com.bleex.old.helpers.BytesWriter;
+import com.bleex.old.utils.BytesUtil;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

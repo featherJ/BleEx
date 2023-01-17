@@ -1,4 +1,4 @@
-package com.bleex.helpers;
+package com.bleex.old.helpers;
 
 import android.bluetooth.BluetoothDevice;
 
