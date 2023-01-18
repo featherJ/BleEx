@@ -43,6 +43,19 @@ public class BytesReceiver {
         }
     }
 
+    /**
+     * 创建一个key
+     *
+     * @param device
+     * @param service
+     * @param characteristic
+     * @param index
+     * @return
+     */
+    public static String createKey(BluetoothDevice device, UUID service, UUID characteristic, byte index) {
+        String key = device.getAddress() + "-" + service + "-" + characteristic + "_" + Integer.toHexString(index & 0xFF);
+        return key;
+    }
 
     private BluetoothDevice device;
     private UUID characteristic;

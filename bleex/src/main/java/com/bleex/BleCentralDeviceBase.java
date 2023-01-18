@@ -15,13 +15,13 @@ import java.util.UUID;
 @SuppressLint("MissingPermission")
 public class BleCentralDeviceBase {
     private BluetoothDevice _device;
-    private BleServicesBase _service;
+    private BleServicesBase services;
     private Context _context;
     private String _address;
 
-    public BleCentralDeviceBase(BluetoothDevice device, BleServicesBase service, Context context) {
+    public BleCentralDeviceBase(BluetoothDevice device, BleServicesBase services, Context context) {
         this._device = device;
-        this._service = service;
+        this.services = services;
         this._context = context;
         this._address = this._device.getAddress();
     }
@@ -80,6 +80,18 @@ public class BleCentralDeviceBase {
     }
 
     /**
+     * 收到了长数据的写入
+     *
+     * @param service
+     * @param characteristic
+     * @param data
+     */
+    protected void onWriteLarge(UUID service, UUID characteristic, byte[] data) {
+        //TODO 子类重写
+    }
+
+
+    /**
      * 收到了有应答的请求，最大长度为mtu
      *
      * @param characteristic
@@ -92,12 +104,66 @@ public class BleCentralDeviceBase {
         return new byte[]{0};
     }
 
+    /**
+     * 收到了有应答的请求，最大长度为mtu
+     *
+     * @param characteristic
+     * @param service
+     * @param data
+     * @return
+     */
+    protected byte[] onRequestLarge(UUID service, UUID characteristic, byte[] data) {
+        //TODO 子类重写
+        return new byte[]{0};
+    }
+
+    /**
+     * 通知到某一个特征，最大长度为mtu，有丢包概率
+     *
+     * @param service
+     * @param characteristic
+     * @param data
+     */
+    public void notify(UUID service, UUID characteristic, byte[] data) throws Exception {
+        if (isDisposed) {
+            throw new Exception("Can not call notify after device disposed.");
+        }
+        this.services.notifyCharacteristicChanged(this.getDevice(), service, characteristic, data, false);
+    }
+
+    /**
+     * 指示到某一个特征，最大长度为mtu，不易丢包
+     *
+     * @param service
+     * @param characteristic
+     * @param data
+     */
+    public void indicate(UUID service, UUID characteristic, byte[] data) throws Exception {
+        if (isDisposed) {
+            throw new Exception("Can not call indicate after device disposed.");
+        }
+        this.services.notifyCharacteristicChanged(this.getDevice(), service, characteristic, data, true);
+    }
+
+    /**
+     * 指示长数据到某一个特征，不易丢包
+     *
+     * @param service
+     * @param characteristic
+     * @param data
+     */
+    public void indicateLarge(UUID service, UUID characteristic, byte[] data) throws Exception {
+        if (isDisposed) {
+            throw new Exception("Can not call indicateLarge after device disposed.");
+        }
+        this.services.indicateLarge(this.getDevice(), service, characteristic, data);
+    }
 
     /**
      * 取消连接
      */
     public void disconnect() {
-        this._service.disconnect(this._device);
+        this.services.disconnect(this._device);
     }
 
     private boolean isDisposed = false;
@@ -112,7 +178,7 @@ public class BleCentralDeviceBase {
     public void dispose() {
         this.isDisposed = true;
         this._device = null;
-        this._service = null;
+        this.services = null;
         this._context = null;
     }
 }

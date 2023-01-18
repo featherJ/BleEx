@@ -21,9 +21,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.ParcelUuid;
 
+import com.bleex.consts.DataTags;
 import com.bleex.helpers.BytesReceiver;
+import com.bleex.helpers.BytesWriter;
 import com.bleex.utils.BytesUtil;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -699,7 +702,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * @param service
      * @return
      */
-    protected byte[] onCharacteristicReadRequest(BluetoothDevice device, UUID service, UUID characteristic,) {
+    protected byte[] onCharacteristicReadRequest(BluetoothDevice device, UUID service, UUID characteristic) {
         BleCentralDeviceBase centralDevice = getDevice(device);
         byte[] responseData = null;
         if (centralDevice != null) {
@@ -741,16 +744,8 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
             }
             return;
         }
-        if (isBelongCharacteristic(WRITE_LARGE_C_KEY, service, characteristic)) {
-
-            return;
-        }
-        if (isBelongCharacteristic(REQUEST_LARGE_C_KEY, service, characteristic)) {
-
-            return;
-        }
-        if (isBelongCharacteristic(INDICATE_LARGE_C_KEY, service, characteristic)) {
-
+        if (isBelongCharacteristic(WRITE_LARGE_C_KEY, service, characteristic) || isBelongCharacteristic(REQUEST_LARGE_C_KEY, service, characteristic)) {
+            receivingDataPacket(device, service, characteristic, value);
             return;
         }
         BleCentralDeviceBase centralDevice = getDevice(device);
@@ -761,8 +756,82 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
 
     private final HashMap<String, BytesReceiver> bytesReceivers = new HashMap<>();
 
-    private void receiveBytes(BluetoothDevice device, UUID service, UUID characteristic, byte[] pack) {
+    private void receivingDataPacket(BluetoothDevice device, UUID service, UUID characteristic, byte[] pack) {
+        byte requestIndex = -1;
+        if (pack.length >= 1) {
+            requestIndex = pack[0];
+        } else {
+            return;
+        }
+        String key = BytesReceiver.createKey(device, service, characteristic, requestIndex);
+        BytesReceiver receiver = null;
+        if (bytesReceivers.containsKey(key)) {
+            receiver = bytesReceivers.get(key);
+        } else {
+            //没有这个接收器，证明原则上应该是首包才对，如果不是首包还没找到接收器，则直接忽视这个包，应该是之前包的遗漏部分。
+            if (pack.length >= 3 && pack[1] == DataTags.MS_WRITE_LARGE[0] && pack[2] == DataTags.MS_WRITE_LARGE[1]) {
+                BytesReceiver newReceiver = new BytesReceiver(key, requestIndex, device, service, characteristic);
+                newReceiver.setCallback(new BytesReceiver.BytesReceiveCallback() {
+                    @Override
+                    public void onReceive(BluetoothDevice device, UUID service, UUID characteristic, byte requestIndex, byte[] data) {
+                        BleLogger.log(TAG, "Received long bytes(length: " + data.length + ") with index: " + requestIndex + " from {device: " + device.getAddress() + ", service: " + service + ", characteristic: " + characteristic + "}.");
+                        receivedData(device, service, characteristic, data);
+                    }
 
+                    @Override
+                    public void onError(BluetoothDevice device, UUID service, UUID characteristic, byte requestIndex) {
+                        BleLogger.log(TAG, "Receive long bytes error with index: " + requestIndex + " from {device: " + device.getAddress() + ", service: " + service + ", characteristic: " + characteristic + "}.");
+                    }
+
+                    @Override
+                    public void onTimeout(BluetoothDevice device, UUID service, UUID characteristic, byte requestIndex) {
+                        BleLogger.log(TAG, "Receive long bytes timeout with index: " + requestIndex + " from {device: " + device.getAddress() + ", service: " + service + ", characteristic: " + characteristic + "}.");
+                    }
+
+                    @Override
+                    public void onFinish(BluetoothDevice device, UUID service, UUID characteristic, String key) {
+                        bytesReceivers.remove(key);
+                    }
+                });
+                bytesReceivers.put(key, newReceiver);
+                receiver = newReceiver;
+            }
+        }
+        if (receiver != null) {
+            receiver.addPackage(pack);
+        }
+    }
+
+    private void receivedData(BluetoothDevice device, UUID service, UUID characteristic, byte[] data) {
+        //收到的长数据包，要么就是长请求，要么就是长写入，第一种情况符合长请求
+        if (isBelongCharacteristic(REQUEST_LARGE_C_KEY, service, characteristic)) {
+            if (data.length >= 3 && DataTags.MS_REQUEST_LARGE[0] == 88 && DataTags.MS_REQUEST_LARGE[1] == 99) {
+                byte reqeustId = data[2];
+                byte[] requestingData = new byte[data.length - 3];
+                ByteBuffer buffer = ByteBuffer.wrap(data);
+                buffer.position(3);
+                buffer.get(requestingData, 0, data.length - 3);
+                byte[] response = onRequestLarge(device, service, characteristic, requestingData);
+                byte[] finalResponse = new byte[response.length + 3];
+                finalResponse[0] = DataTags.SM_RESPONSE_LARGE[0];
+                finalResponse[1] = DataTags.SM_RESPONSE_LARGE[1];
+                finalResponse[2] = reqeustId;
+                buffer = ByteBuffer.wrap(response);
+                buffer.position(0);
+                buffer.get(finalResponse, 3, response.length);
+                //将请求结果发送给主设备
+                try {
+                    indicateLarge(device, service, characteristic, finalResponse);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
+        }
+        BleCentralDeviceBase centralDevice = getDevice(device);
+        if (centralDevice != null) {
+            centralDevice.onWriteLarge(service, characteristic, data);
+        }
     }
 
 
@@ -784,6 +853,24 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
     }
 
     /**
+     * 收到了有应答的长数据请求
+     *
+     * @param device
+     * @param service
+     * @param characteristic
+     * @param value
+     * @return
+     */
+    protected byte[] onRequestLarge(BluetoothDevice device, UUID service, UUID characteristic, byte[] value) {
+        BleCentralDeviceBase centralDevice = getDevice(device);
+        if (centralDevice != null) {
+            return centralDevice.onRequestLarge(service, characteristic, value);
+        }
+        return new byte[]{0};
+    }
+
+
+    /**
      * 派发通知
      *
      * @param device
@@ -802,6 +889,39 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
         BleLogger.log(TAG, String.format("notifyCharacteristicChanged:%s,%s,%s,%s", device.getName(), device.getAddress(), characteristic, BytesUtil.bytesToString(value, false)));
     }
 
+    private final HashMap<String, Byte> indexMap = new HashMap<>();
+
+    private byte getIndex(String type) {
+        Byte existIndex = -128;
+        if (indexMap.containsKey(type)) {
+            existIndex = indexMap.get(type);
+        }
+        existIndex++;
+        if (existIndex == 127) {
+            existIndex = -128;
+        }
+        indexMap.put(type, existIndex);
+        return existIndex;
+    }
+
+    /**
+     * 指示长数据(有反馈的长数据通知)
+     *
+     * @param device
+     * @param service
+     * @param characteristic
+     * @param data
+     */
+    public void indicateLarge(BluetoothDevice device, UUID service, UUID characteristic, byte[] data) throws Exception {
+        if (isBelongCharacteristic(REQUEST_LARGE_C_KEY, service, characteristic) || isBelongCharacteristic(INDICATE_LARGE_C_KEY, service, characteristic)) {
+            byte writeIndex = getIndex("writeBytes");
+            String key = BytesWriter.createKey(device, service, characteristic, writeIndex);
+            BluetoothGattService serviceTarget = this.serviceMap.get(service);
+            BluetoothGattCharacteristic characteristicTarget = serviceTarget.getCharacteristic(characteristic);
+            BytesWriter writer = new BytesWriter(writeIndex, getPackageSize(), key, device, this, service, characteristic);
+            writer.writeBytes(data);
+        }
+    }
 
     class ServicesCallback extends BluetoothGattServerCallback {
         final UUID service;
