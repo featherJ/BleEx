@@ -65,7 +65,7 @@ public class BleCentralDeviceBase {
      */
     protected byte[] onRead(UUID service, UUID characteristic) {
         //TODO 子类重写
-        return null;
+        return new byte[]{0};
     }
 
     /**
