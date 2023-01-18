@@ -21,7 +21,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.ParcelUuid;
 
+import com.bleex.BleCentralDeviceChangedCallback;
 import com.bleex.BleLogger;
+import com.bleex.BluetoothStateChangedCallback;
 import com.bleex.old.helpers.BytesRecevier;
 import com.bleex.old.helpers.BytesWriter;
 import com.bleex.old.utils.BytesUtil;
@@ -89,7 +91,7 @@ class NotifyCharacteristic {
  * @author Agua.L
  */
 @SuppressLint("MissingPermission")
-public class BleServiceBase<T extends BleCentralDeviceBase> {
+public class BleServiceBaseOld<T extends BleCentralDeviceBaseOld> {
 
     private static final String TAG = "BleServiceBase";
 
@@ -103,11 +105,11 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
 
     private final HashMap<String, T> deviceMap = new HashMap<>();
 
-    protected BleServiceBase self;
+    protected BleServiceBaseOld self;
 
     private int packageSize = 20;
 
-    public BleServiceBase(Context context, UUID serviceUuid) {
+    public BleServiceBaseOld(Context context, UUID serviceUuid) {
         this.self = this;
         this.context = context;
 
@@ -636,8 +638,8 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      * @param device
      * @return
      */
-    protected BleCentralDeviceBase createCentralDevice(BluetoothDevice device) {
-        return new BleCentralDeviceBase(device, self, self.context);
+    protected BleCentralDeviceBaseOld createCentralDevice(BluetoothDevice device) {
+        return new BleCentralDeviceBaseOld(device, self, self.context);
     }
 
     /**
@@ -674,7 +676,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      * @param characteristic
      */
     protected void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattCharacteristic characteristic) {
-        BleCentralDeviceBase clientDevice = getDevice(device);
+        BleCentralDeviceBaseOld clientDevice = getDevice(device);
         byte[] responseData = null;
         if (clientDevice != null) {
             responseData = clientDevice.onCharacteristicReadRequest(characteristic.getUuid());
@@ -730,7 +732,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
             }
             return;
         }
-        BleCentralDeviceBase clientDevice = getDevice(device);
+        BleCentralDeviceBaseOld clientDevice = getDevice(device);
         if (clientDevice != null) {
             clientDevice.onCharacteristicWriteRequest(characteristic.getUuid(), requestingBytes);
         }
@@ -745,7 +747,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      * @return
      */
     protected byte[] onRequest(BluetoothDevice device, UUID characteristicUuid, byte[] requestingData) {
-        BleCentralDeviceBase clientDevice = getDevice(device);
+        BleCentralDeviceBaseOld clientDevice = getDevice(device);
         if (clientDevice != null) {
             return clientDevice.onRequest(characteristicUuid, requestingData);
         }
@@ -761,7 +763,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
      * @return
      */
     private byte[] onRequestBytes(BluetoothDevice device, UUID characteristicUuid, byte[] requestingData) {
-        BleCentralDeviceBase clientDevice = getDevice(device);
+        BleCentralDeviceBaseOld clientDevice = getDevice(device);
         if (clientDevice != null) {
             return clientDevice.onRequestBytes(characteristicUuid, requestingData);
         }
@@ -852,7 +854,7 @@ public class BleServiceBase<T extends BleCentralDeviceBase> {
                 writeBytes(device, characteristicUuid, finalResponse, null);
             }
         } else {
-            BleCentralDeviceBase clientDevice = getDevice(device);
+            BleCentralDeviceBaseOld clientDevice = getDevice(device);
             if (clientDevice != null) {
                 clientDevice.onReceiveBytes(characteristicUuid, receivedData);
             }

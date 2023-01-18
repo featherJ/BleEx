@@ -5,15 +5,15 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.ContextWrapper;
 
-import com.bleex.old.BleCentralDeviceBase;
-import com.bleex.old.BleServiceBase;
+import com.bleex.old.BleCentralDeviceBaseOld;
+import com.bleex.old.BleServiceBaseOld;
 import com.bleex.old.utils.BytesUtil;
 
 import java.util.UUID;
 
 @SuppressLint("MissingPermission")
-public class BleService extends BleServiceBase<BleCentralDevice> {
-    public BleService(ContextWrapper activity) {
+public class BleServiceOld extends BleServiceBaseOld<BleCentralDeviceOld> {
+    public BleServiceOld(ContextWrapper activity) {
         super(activity, BleUUIDs.SERVICE);
         this.initCharacteristics();
     }
@@ -38,8 +38,8 @@ public class BleService extends BleServiceBase<BleCentralDevice> {
     }
 
     @Override
-    protected BleCentralDeviceBase createCentralDevice(BluetoothDevice device) {
-        return new BleCentralDevice(device, this,this.context);
+    protected BleCentralDeviceBaseOld createCentralDevice(BluetoothDevice device) {
+        return new BleCentralDeviceOld(device, this,this.context);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class BleService extends BleServiceBase<BleCentralDevice> {
                     this.doAddDevice(device);//Do add central device
                     return new byte[]{1};
                 } else {
-                    BleCentralDevice existDevice = this.getDevice(device.getAddress());
+                    BleCentralDeviceOld existDevice = this.getDevice(device.getAddress());
                     if (existDevice != null) {
                         this.doUpdateDevice(device);// Update the central device
                         return new byte[]{1};

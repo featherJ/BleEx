@@ -5,12 +5,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 
-import com.bleex.old.BleCentralDeviceChangedCallback;
+import com.bleex.BleCentralDeviceChangedCallback;
 import com.bleex.BleLogger;
-import com.bleex.old.BluetoothStateChangedCallback;
-import com.bleex.sample.ble.BleCentralDevice;
-import com.bleex.sample.ble.BleService;
-import com.bleex.old.utils.PermissionsUtils;
+import com.bleex.BluetoothStateChangedCallback;
+import com.bleex.sample.ble.BleCentralDeviceOld;
+import com.bleex.sample.ble.BleServiceOld;
+import com.bleex.utils.PermissionsUtils;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -22,20 +22,20 @@ public class MainActivity extends AppCompatActivity {
 
         PermissionsUtils.checkPermissions(MainActivity.this);
 
-        BleService bleService = new BleService(this);
-        bleService.addDeviceChangedListener(new BleCentralDeviceChangedCallback<BleCentralDevice>() {
+        BleServiceOld bleService = new BleServiceOld(this);
+        bleService.addDeviceChangedListener(new BleCentralDeviceChangedCallback<BleCentralDeviceOld>() {
             @Override
-            public void onUpdateDevice(BleCentralDevice clientDevice) {
+            public void onUpdateDevice(BleCentralDeviceOld clientDevice) {
                 BleLogger.log(TAG, "onUpdateDevice: " + clientDevice.getAddress());
             }
 
             @Override
-            public void onAddDevice(BleCentralDevice clientDevice) {
+            public void onAddDevice(BleCentralDeviceOld clientDevice) {
                 BleLogger.log(TAG, "onAddDevice: " + clientDevice.getAddress());
             }
 
             @Override
-            public void onRemoveDevice(BleCentralDevice clientDevice) {
+            public void onRemoveDevice(BleCentralDeviceOld clientDevice) {
                 BleLogger.log(TAG, "onRemoveDevice: " + clientDevice.getAddress());
             }
         });

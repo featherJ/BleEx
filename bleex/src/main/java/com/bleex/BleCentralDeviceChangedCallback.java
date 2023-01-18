@@ -1,4 +1,6 @@
-package com.bleex.old;
+package com.bleex;
+
+import com.bleex.old.BleCentralDeviceBaseOld;
 
 /**
  * Ble服务的中心设备改变回调函数

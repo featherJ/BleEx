@@ -5,7 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 
 import com.bleex.BleLogger;
-import com.bleex.old.BleServiceBase;
+import com.bleex.old.BleServiceBaseOld;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -69,10 +69,10 @@ public class BytesWriter {
     int packageSize;
     String key;
     BluetoothDevice device;
-    BleServiceBase service;
+    BleServiceBaseOld service;
     BluetoothGattCharacteristic characteristic;
 
-    public BytesWriter(byte writeIndex, int packageSize, String key, BluetoothDevice device, BleServiceBase service, BluetoothGattCharacteristic characteristic) {
+    public BytesWriter(byte writeIndex, int packageSize, String key, BluetoothDevice device, BleServiceBaseOld service, BluetoothGattCharacteristic characteristic) {
         this.writeIndex = writeIndex;
         this.packageSize = packageSize;
         this.key = key;

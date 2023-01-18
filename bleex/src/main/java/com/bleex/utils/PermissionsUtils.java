@@ -1,4 +1,4 @@
-package com.bleex.old.utils;
+package com.bleex.utils;
 
 import android.Manifest;
 import android.app.Activity;

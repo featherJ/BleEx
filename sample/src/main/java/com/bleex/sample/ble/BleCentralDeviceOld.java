@@ -3,18 +3,18 @@ package com.bleex.sample.ble;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 
-import com.bleex.old.BleCentralDeviceBase;
+import com.bleex.old.BleCentralDeviceBaseOld;
 import com.bleex.BleLogger;
-import com.bleex.old.BleServiceBase;
+import com.bleex.old.BleServiceBaseOld;
 import com.bleex.old.helpers.BytesWriter;
 import com.bleex.old.utils.BytesUtil;
 
 import java.util.UUID;
 
-public class BleCentralDevice extends BleCentralDeviceBase {
+public class BleCentralDeviceOld extends BleCentralDeviceBaseOld {
     private static final String TAG = "BleCentralDevice";
 
-    public BleCentralDevice(BluetoothDevice device, BleServiceBase service, Context context) {
+    public BleCentralDeviceOld(BluetoothDevice device, BleServiceBaseOld service, Context context) {
         super(device, service, context);
     }
 

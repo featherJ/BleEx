@@ -1,4 +1,4 @@
-package com.bleex.old;
+package com.bleex;
 
 /**
  * 蓝牙状态改变回调

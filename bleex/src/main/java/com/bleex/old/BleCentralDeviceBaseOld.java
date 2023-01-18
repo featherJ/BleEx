@@ -15,14 +15,14 @@ import java.util.UUID;
  * @author Agua.L
  */
 @SuppressLint("MissingPermission")
-public class BleCentralDeviceBase {
+public class BleCentralDeviceBaseOld {
 
     private BluetoothDevice _device;
-    private BleServiceBase _service;
+    private BleServiceBaseOld _service;
     private Context _context;
     private String _address;
 
-    public BleCentralDeviceBase(BluetoothDevice device, BleServiceBase service, Context context) {
+    public BleCentralDeviceBaseOld(BluetoothDevice device, BleServiceBaseOld service, Context context) {
         this._device = device;
         this._service = service;
         this._context = context;
