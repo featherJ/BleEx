@@ -8,7 +8,6 @@ import android.os.Bundle;
 import com.bleex.BleCentralDeviceChangedCallback;
 import com.bleex.BleLogger;
 import com.bleex.BluetoothStateChangedCallback;
-import com.bleex.sample.ble.BleServiceOld;
 import com.bleex.utils.PermissionsUtils;
 
 public class MainActivity extends AppCompatActivity {

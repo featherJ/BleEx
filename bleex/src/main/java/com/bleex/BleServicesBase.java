@@ -219,11 +219,20 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
 
 
     private List<UUID> services = new ArrayList<>();
-
     /**
      * 添加一个服务（不可与主服务相同）
      *
      * @param service
+     */
+    public void addService(UUID service) throws Exception {
+        this.addService(service,false);
+    }
+
+    /**
+     * 添加一个服务（不可与主服务相同）
+     * @param service
+     * @param start
+     * @throws Exception
      */
     public void addService(UUID service, boolean start) throws Exception {
         if (this.serviceMap.containsKey(service.toString())) {
@@ -651,7 +660,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * @return
      * @throws Exception
      */
-    public BluetoothGattCharacteristic addRequestBytesCharacteristic(UUID service, UUID characteristic) throws Exception {
+    public BluetoothGattCharacteristic addRequestLargeCharacteristic(UUID service, UUID characteristic) throws Exception {
         BluetoothGattCharacteristic requestBytesCharacteristic = this.addCharacteristic(service, characteristic,
                 BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_INDICATE,
                 BluetoothGattCharacteristic.PERMISSION_WRITE | BluetoothGattCharacteristic.PERMISSION_READ);
@@ -667,7 +676,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * @return
      * @throws Exception
      */
-    public BluetoothGattCharacteristic addWriteBytesCharacteristic(UUID service, UUID characteristic) throws Exception {
+    public BluetoothGattCharacteristic addWriteLargeCharacteristic(UUID service, UUID characteristic) throws Exception {
         BluetoothGattCharacteristic receiveBytesCharacteristic = this.addCharacteristic(service, characteristic,
                 BluetoothGattCharacteristic.PROPERTY_WRITE,
                 BluetoothGattCharacteristic.PERMISSION_WRITE | BluetoothGattCharacteristic.PERMISSION_READ);
@@ -683,7 +692,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * @return
      * @throws Exception
      */
-    public BluetoothGattCharacteristic addIndicateBytesCharacteristic(UUID service, UUID characteristic) throws Exception {
+    public BluetoothGattCharacteristic addIndicateLargeCharacteristic(UUID service, UUID characteristic) throws Exception {
         BluetoothGattCharacteristic writeBytesCharacteristic = this.addCharacteristic(service, characteristic,
                 BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
                 BluetoothGattCharacteristic.PERMISSION_WRITE | BluetoothGattCharacteristic.PERMISSION_READ);

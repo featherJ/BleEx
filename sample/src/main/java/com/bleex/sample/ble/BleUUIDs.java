@@ -3,6 +3,7 @@ package com.bleex.sample.ble;
 import java.util.UUID;
 
 public class BleUUIDs {
+    /* --------------- service uuid --------------- */
     /**
      * The uuid of service 1
      */
@@ -11,8 +12,12 @@ public class BleUUIDs {
      * The uuid of service 2
      */
     public static final UUID SERVICE_2 = UUID.fromString("10000000-0002-0000-0000-000000000000");
+    /**
+     * A uuid of characteristic used to authenticate the central device
+     */
+    public static final UUID VERIFY_CENTRAL = UUID.fromString("10000000-1010-0000-0000-000000000000");
 
-
+    /* --------------- base characteristics --------------- */
     /**
      * A uuid of characteristic used to test reading from peripheral
      */
@@ -25,12 +30,12 @@ public class BleUUIDs {
      * A uuid of characteristic used to test indicate from peripheral device
      */
     public static final UUID NOTIFY_TEST = UUID.fromString("10000001-0003-0000-0000-000000000000");
-
     /**
      * A uuid of characteristic used to test indicate from peripheral device
      */
     public static final UUID INDICATE_TEST = UUID.fromString("10000001-0004-0000-0000-000000000000");
 
+    /* --------------- bleex characteristics --------------- */
     /**
      * A uuid of characteristic used to test requesting data under mtu limited from peripheral device
      */
@@ -54,10 +59,6 @@ public class BleUUIDs {
 
 
 
-    /**
-     * A uuid of characteristic used to authenticate the central device
-     */
-    public static final UUID VERIFY_CENTRAL = UUID.fromString("10000001-0000-0000-0000-000000000000");
 
 
 

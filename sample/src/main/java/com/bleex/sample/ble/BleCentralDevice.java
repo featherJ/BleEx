@@ -55,7 +55,7 @@ public class BleCentralDevice extends BleCentralDeviceBase {
                 datas[i] = 2;
             }
             try {
-                this.indicate(BleUUIDs.SERVICE_2, BleUUIDs.NOTIFY_TEST, datas);
+                this.notify(BleUUIDs.SERVICE_2, BleUUIDs.NOTIFY_TEST, datas);
             } catch (Exception e) {
                 e.printStackTrace();
             }
