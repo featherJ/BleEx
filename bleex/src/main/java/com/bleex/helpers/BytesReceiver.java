@@ -190,7 +190,7 @@ public class BytesReceiver {
         this.timer = null;
     }
 
-    private void clear() {
+    public void clear() {
         this.cancelTimer();
         this.device = null;
         this.service = null;

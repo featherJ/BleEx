@@ -44,7 +44,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
 
     private final BluetoothManager bluetoothManager;
     private final BluetoothAdapter bluetoothAdapter;
-    private final BluetoothLeAdvertiser bluetoothLeAdvertiser; // BLE广播
+    private BluetoothLeAdvertiser bluetoothLeAdvertiser; // BLE广播
     protected final Context context;
 
     protected BleServicesBase self;
@@ -64,8 +64,6 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
 
         this.bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         this.bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-        this.bluetoothLeAdvertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
 
         BroadcastReceiver broadcastReceiver = new BluetoothStateBroadcastReceive();
         IntentFilter intent = new IntentFilter();
@@ -182,7 +180,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * 启动该管理器，用于检测到蓝牙
      */
     public void launch() throws Exception {
-        if (isBluetoothEnable()) {
+        if (!isBluetoothEnable()) {
             throw new Exception("Cannot launch while Bluetooth is disable");
         }
         serverMap = new HashMap<>();
@@ -196,6 +194,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * 停止该管理器
      */
     public void stop() {
+        cleanAllReceivers();
         disconnectAll();
         for (int i = 0; i < startedServiceUuids.size(); i++) {
             UUID service = startedServiceUuids.get(i);
@@ -220,12 +219,12 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
 
     private List<UUID> services = new ArrayList<>();
     /**
-     * 添加一个服务（不可与主服务相同）
+     * 添加并启动一个服务（不可与主服务相同）
      *
      * @param service
      */
     public void addService(UUID service) throws Exception {
-        this.addService(service,false);
+        this.addService(service,true);
     }
 
     /**
@@ -364,6 +363,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
                     .addManufacturerData(1, manufacturerData)
                     .build();
         }
+        this.bluetoothLeAdvertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
         if (scanResponse != null) {
             bluetoothLeAdvertiser.startAdvertising(settings, advertiseData, scanResponse, this.advertiseCallback);
         } else {
@@ -764,6 +764,13 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
     }
 
     private final HashMap<String, BytesReceiver> bytesReceivers = new HashMap<>();
+
+    private void cleanAllReceivers(){
+        bytesReceivers.forEach((key,receiver)->{
+            receiver.clear();
+        });
+        bytesReceivers.clear();
+    }
 
     private void receivingDataPacket(BluetoothDevice device, UUID service, UUID characteristic, byte[] pack) {
         byte requestIndex = -1;

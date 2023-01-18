@@ -8,6 +8,8 @@ import android.os.Bundle;
 import com.bleex.BleCentralDeviceChangedCallback;
 import com.bleex.BleLogger;
 import com.bleex.BluetoothStateChangedCallback;
+import com.bleex.sample.ble.BleCentralDevice;
+import com.bleex.sample.ble.BleServices;
 import com.bleex.utils.PermissionsUtils;
 
 public class MainActivity extends AppCompatActivity {
@@ -20,42 +22,48 @@ public class MainActivity extends AppCompatActivity {
 
         PermissionsUtils.checkPermissions(MainActivity.this);
 
-        BleServiceOld bleService = new BleServiceOld(this);
-        bleService.addDeviceChangedListener(new BleCentralDeviceChangedCallback<BleCentralDeviceOld>() {
+        BleServices bleService = new BleServices(this);
+        bleService.addDeviceChangedListener(new BleCentralDeviceChangedCallback<BleCentralDevice>() {
             @Override
-            public void onUpdateDevice(BleCentralDeviceOld clientDevice) {
+            public void onUpdateDevice(BleCentralDevice clientDevice) {
                 BleLogger.log(TAG, "onUpdateDevice: " + clientDevice.getAddress());
             }
 
             @Override
-            public void onAddDevice(BleCentralDeviceOld clientDevice) {
+            public void onAddDevice(BleCentralDevice clientDevice) {
                 BleLogger.log(TAG, "onAddDevice: " + clientDevice.getAddress());
             }
 
             @Override
-            public void onRemoveDevice(BleCentralDeviceOld clientDevice) {
+            public void onRemoveDevice(BleCentralDevice clientDevice) {
                 BleLogger.log(TAG, "onRemoveDevice: " + clientDevice.getAddress());
             }
         });
         bleService.addBluetoothStateChangedListener(new BluetoothStateChangedCallback() {
             @Override
             public void onStateChanged(boolean enable) {
-                if(enable){
-                    bleService.startAdvertising();
-                    bleService.startService();
-                }else{
+                if (enable) {
+                    try {
+                        bleService.startAdvertising();
+                        bleService.launch();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
                     bleService.stopAdvertising();
-                    bleService.disconnectAll();
-                    bleService.stopService();
+                    bleService.stop();
                 }
             }
         });
-        if(bleService.isEnable()){
-            bleService.startAdvertising();
-            bleService.startService();
+        if (bleService.isBluetoothEnable()) {
+            try {
+                bleService.startAdvertising();
+                bleService.launch();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
-
 
 
     @Override

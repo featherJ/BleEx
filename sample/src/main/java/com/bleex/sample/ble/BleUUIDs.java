@@ -54,14 +54,4 @@ public class BleUUIDs {
     public static final UUID INDICATE_LARGE_TEST = UUID.fromString("10000002-0004-0000-0000-000000000000");
 
 
-
-
-
-
-
-
-
-
-
-
 }
