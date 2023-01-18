@@ -4,9 +4,21 @@ import java.util.UUID;
 
 public class BleUUIDs {
     /**
-     * The uuid of service
+     * The uuid of service 1
      */
-    public static final UUID SERVICE = UUID.fromString("10000000-0000-0000-0000-000000000000");
+    public static final UUID SERVICE_1 = UUID.fromString("10000000-0001-0000-0000-000000000000");
+    /**
+     * The uuid of service 2
+     */
+    public static final UUID SERVICE_2 = UUID.fromString("10000000-0002-0000-0000-000000000000");
+
+
+
+
+
+
+
+
     /**
      * A uuid of characteristic used to authenticate the central device
      */
