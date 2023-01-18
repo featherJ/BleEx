@@ -63,7 +63,7 @@ public class BleCentralDeviceBase {
      * @param service
      * @return
      */
-    protected byte[] onRead(UUID characteristic, UUID service) {
+    protected byte[] onRead(UUID service, UUID characteristic) {
         //TODO 子类重写
         return null;
     }
@@ -75,7 +75,7 @@ public class BleCentralDeviceBase {
      * @param service
      * @param data
      */
-    protected void onWrite(UUID characteristic, UUID service, byte[] data) {
+    protected void onWrite(UUID service, UUID characteristic, byte[] data) {
         //TODO 子类重写
     }
 
@@ -87,7 +87,7 @@ public class BleCentralDeviceBase {
      * @param data
      * @return
      */
-    protected byte[] onRequest(UUID characteristic, UUID service, byte[] data) {
+    protected byte[] onRequest(UUID service, UUID characteristic, byte[] data) {
         //TODO 子类重写
         return new byte[]{0};
     }

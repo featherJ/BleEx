@@ -1,4 +1,4 @@
-package com.bleex.old.utils;
+package com.bleex.utils;
 
 /**
  * 二进制工具

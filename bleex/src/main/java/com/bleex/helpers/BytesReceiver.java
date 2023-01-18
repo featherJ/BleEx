@@ -1,6 +1,8 @@
-package com.bleex.old.helpers;
+package com.bleex.helpers;
 
 import android.bluetooth.BluetoothDevice;
+
+import com.bleex.consts.DataTags;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -15,9 +17,9 @@ import java.util.UUID;
  *
  * @author Agua.L
  */
-public class BytesRecevier {
-    //超时时间2秒
-    private static final long TIME_OUT = 2000;
+public class BytesReceiver {
+    //超时时间20秒，所有会使用到接收器的均为有应答的写，所以超时时间仅作为方式内存移除使用，固超时时间很长
+    private static final long TIME_OUT = 20000;
 
     /**
      * 长数据接收器的回调
@@ -25,33 +27,35 @@ public class BytesRecevier {
      * @author Agua.L
      */
     public static abstract class BytesReceiveCallback {
-        public void onReceive(BluetoothDevice device, UUID characteristicUuid, byte requestIndex, byte[] data) {
+        public void onReceive(BluetoothDevice device, UUID service, UUID characteristic, byte requestIndex, byte[] data) {
 
         }
 
-        public void onError(BluetoothDevice device, UUID characteristicUuid, byte requestIndex) {
+        public void onError(BluetoothDevice device, UUID service, UUID characteristic, byte requestIndex) {
 
         }
 
-        public void onTimeout(BluetoothDevice device, UUID characteristicUuid, byte requestIndex) {
+        public void onTimeout(BluetoothDevice device, UUID service, UUID characteristic, byte requestIndex) {
 
         }
 
-        public void onFinish(BluetoothDevice device, UUID characteristicUuid, String key) {
+        public void onFinish(BluetoothDevice device, UUID service, UUID characteristic, String key) {
         }
     }
 
 
     private BluetoothDevice device;
-    private UUID characteristicUuid;
+    private UUID characteristic;
+    private UUID service;
     private String key;
     private byte requestIndex;
 
-    public BytesRecevier(String key, byte requestIndex, BluetoothDevice device, UUID characteristicUuid) {
+    public BytesReceiver(String key, byte requestIndex, BluetoothDevice device, UUID service, UUID characteristic) {
         this.key = key;
         this.requestIndex = requestIndex;
         this.device = device;
-        this.characteristicUuid = characteristicUuid;
+        this.service = service;
+        this.characteristic = characteristic;
         this.initTimer();
     }
 
@@ -74,7 +78,7 @@ public class BytesRecevier {
     public void addPackage(byte[] pack) {
         if (index == 0) {
             //是一个首包
-            if (pack[1] == 120 && pack[2] == 110) {
+            if (pack[1] == DataTags.MS_WRITE_LARGE[0] && pack[2] == DataTags.MS_WRITE_LARGE[1]) {
                 ByteBuffer buffer = ByteBuffer.wrap(pack);
                 buffer.order(ByteOrder.BIG_ENDIAN);
                 buffer.position(3);
@@ -86,8 +90,8 @@ public class BytesRecevier {
             } else {
                 if (callback != null) {
                     cancelTimer();
-                    callback.onError(this.device, this.characteristicUuid, requestIndex);
-                    callback.onFinish(this.device, this.characteristicUuid, key);
+                    callback.onError(this.device, this.service, this.characteristic, requestIndex);
+                    callback.onFinish(this.device, this.service, this.characteristic, key);
                 }
                 clear();
             }
@@ -103,8 +107,8 @@ public class BytesRecevier {
             } else {
                 cancelTimer();
                 if (callback != null) {
-                    callback.onError(this.device, this.characteristicUuid, requestIndex);
-                    callback.onFinish(this.device, this.characteristicUuid, key);
+                    callback.onError(this.device, this.service, this.characteristic, requestIndex);
+                    callback.onFinish(this.device, this.service, this.characteristic, key);
                 }
                 clear();
             }
@@ -123,15 +127,15 @@ public class BytesRecevier {
             if (finalBytes.length == packageSize) {
                 cancelTimer();
                 if (callback != null) {
-                    callback.onReceive(this.device, this.characteristicUuid, requestIndex, finalBytes);
-                    callback.onFinish(this.device, this.characteristicUuid, key);
+                    callback.onReceive(this.device, this.service, this.characteristic, requestIndex, finalBytes);
+                    callback.onFinish(this.device, this.service, this.characteristic, key);
                 }
                 clear();
             } else {
                 cancelTimer();
                 if (callback != null) {
-                    callback.onError(this.device, this.characteristicUuid, requestIndex);
-                    callback.onFinish(this.device, this.characteristicUuid, key);
+                    callback.onError(this.device, this.service, this.characteristic, requestIndex);
+                    callback.onFinish(this.device, this.service, this.characteristic, key);
                 }
                 clear();
             }
@@ -152,8 +156,8 @@ public class BytesRecevier {
                 if (nowTimestamp - updateTimestamp >= TIME_OUT) {
                     cancelTimer();
                     if (callback != null) {
-                        callback.onTimeout(device, characteristicUuid, requestIndex);
-                        callback.onFinish(device, characteristicUuid, key);
+                        callback.onTimeout(device, service, characteristic, requestIndex);
+                        callback.onFinish(device, service, characteristic, key);
                     }
                     clear();
                 }
@@ -176,7 +180,8 @@ public class BytesRecevier {
     private void clear() {
         this.cancelTimer();
         this.device = null;
-        this.characteristicUuid = null;
+        this.service = null;
+        this.characteristic = null;
         this.callback = null;
     }
 }

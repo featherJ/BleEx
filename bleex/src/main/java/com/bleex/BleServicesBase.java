@@ -21,8 +21,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.ParcelUuid;
 
-import com.bleex.old.BleCentralDeviceBaseOld;
-import com.bleex.old.utils.BytesUtil;
+import com.bleex.helpers.BytesReceiver;
+import com.bleex.utils.BytesUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -516,10 +516,11 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * 所有使用设备得地方都会先调用这个方法
      *
      * @param device
-     * @param characteristicUuid
+     * @param service
+     * @param characteristic
      * @return
      */
-    protected boolean doFilterDevice(BluetoothDevice device, UUID characteristicUuid) {
+    protected boolean doFilterDevice(BluetoothDevice device, UUID service, UUID characteristic) {
         return true;
     }
 
@@ -566,7 +567,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * @param permissions
      * @param service
      */
-    public BluetoothGattCharacteristic addCharacteristic(UUID characteristic, int properties, int permissions, UUID service) throws Exception {
+    public BluetoothGattCharacteristic addCharacteristic(UUID service, UUID characteristic, int properties, int permissions) throws Exception {
         BluetoothGattService serverTarget = serviceMap.get(service.toString());
         if (serverTarget == null) {
             throw new Exception("Service " + service + " dose not exist");
@@ -613,7 +614,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
         return recordCharacteristics;
     }
 
-    private boolean isBelongCharacteristic(String key, UUID characteristic, UUID service) {
+    private boolean isBelongCharacteristic(String key, UUID service, UUID characteristic) {
         ArrayList<BluetoothGattCharacteristic> requestCharacteristics = getRecordCharacteristics(key, service);
         for (int i = 0; i < requestCharacteristics.size(); i++) {
             if (requestCharacteristics.get(i).getUuid().equals(characteristic)) {
@@ -631,12 +632,10 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * @return
      * @throws Exception
      */
-    public BluetoothGattCharacteristic addRequestCharacteristic(UUID characteristic, UUID service) throws Exception {
-        BluetoothGattCharacteristic requestCharacteristic = this.addCharacteristic(
-                characteristic,
+    public BluetoothGattCharacteristic addRequestCharacteristic(UUID service, UUID characteristic) throws Exception {
+        BluetoothGattCharacteristic requestCharacteristic = this.addCharacteristic(service, characteristic,
                 BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_INDICATE,
-                BluetoothGattCharacteristic.PERMISSION_WRITE | BluetoothGattCharacteristic.PERMISSION_READ,
-                service);
+                BluetoothGattCharacteristic.PERMISSION_WRITE | BluetoothGattCharacteristic.PERMISSION_READ);
         getRecordCharacteristics(REQUEST_C_KEY, service).add(requestCharacteristic);
         return requestCharacteristic;
     }
@@ -649,11 +648,10 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * @return
      * @throws Exception
      */
-    public BluetoothGattCharacteristic addRequestBytesCharacteristic(UUID characteristic, UUID service) throws Exception {
-        BluetoothGattCharacteristic requestBytesCharacteristic = this.addCharacteristic(characteristic,
+    public BluetoothGattCharacteristic addRequestBytesCharacteristic(UUID service, UUID characteristic) throws Exception {
+        BluetoothGattCharacteristic requestBytesCharacteristic = this.addCharacteristic(service, characteristic,
                 BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_INDICATE,
-                BluetoothGattCharacteristic.PERMISSION_WRITE | BluetoothGattCharacteristic.PERMISSION_READ,
-                service);
+                BluetoothGattCharacteristic.PERMISSION_WRITE | BluetoothGattCharacteristic.PERMISSION_READ);
         getRecordCharacteristics(REQUEST_LARGE_C_KEY, service).add(requestBytesCharacteristic);
         return requestBytesCharacteristic;
     }
@@ -666,12 +664,10 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * @return
      * @throws Exception
      */
-    public BluetoothGattCharacteristic addWriteBytesCharacteristic(UUID characteristic, UUID service) throws Exception {
-        BluetoothGattCharacteristic receiveBytesCharacteristic = this.addCharacteristic(
-                characteristic,
+    public BluetoothGattCharacteristic addWriteBytesCharacteristic(UUID service, UUID characteristic) throws Exception {
+        BluetoothGattCharacteristic receiveBytesCharacteristic = this.addCharacteristic(service, characteristic,
                 BluetoothGattCharacteristic.PROPERTY_WRITE,
-                BluetoothGattCharacteristic.PERMISSION_WRITE | BluetoothGattCharacteristic.PERMISSION_READ,
-                service);
+                BluetoothGattCharacteristic.PERMISSION_WRITE | BluetoothGattCharacteristic.PERMISSION_READ);
         getRecordCharacteristics(WRITE_LARGE_C_KEY, service).add(receiveBytesCharacteristic);
         return receiveBytesCharacteristic;
     }
@@ -684,12 +680,10 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * @return
      * @throws Exception
      */
-    public BluetoothGattCharacteristic addIndicateBytesCharacteristic(UUID characteristic, UUID service) throws Exception {
-        BluetoothGattCharacteristic writeBytesCharacteristic = this.addCharacteristic(
-                characteristic,
+    public BluetoothGattCharacteristic addIndicateBytesCharacteristic(UUID service, UUID characteristic) throws Exception {
+        BluetoothGattCharacteristic writeBytesCharacteristic = this.addCharacteristic(service, characteristic,
                 BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-                BluetoothGattCharacteristic.PERMISSION_WRITE | BluetoothGattCharacteristic.PERMISSION_READ,
-                service);
+                BluetoothGattCharacteristic.PERMISSION_WRITE | BluetoothGattCharacteristic.PERMISSION_READ);
         getRecordCharacteristics(INDICATE_LARGE_C_KEY, service).add(writeBytesCharacteristic);
         return writeBytesCharacteristic;
     }
@@ -705,11 +699,11 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * @param service
      * @return
      */
-    protected byte[] onCharacteristicReadRequest(BluetoothDevice device, UUID characteristic, UUID service) {
+    protected byte[] onCharacteristicReadRequest(BluetoothDevice device, UUID service, UUID characteristic,) {
         BleCentralDeviceBase centralDevice = getDevice(device);
         byte[] responseData = null;
         if (centralDevice != null) {
-            responseData = centralDevice.onRead(characteristic, service);
+            responseData = centralDevice.onRead(service, characteristic);
         }
         return responseData;
     }
@@ -722,8 +716,8 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * @param service
      * @param value
      */
-    protected void onCharacteristicWriteRequest(BluetoothDevice device, UUID characteristic, UUID service, byte[] value) {
-        if (isBelongCharacteristic(REQUEST_C_KEY, characteristic, service)) {
+    protected void onCharacteristicWriteRequest(BluetoothDevice device, UUID service, UUID characteristic, byte[] value) {
+        if (isBelongCharacteristic(REQUEST_C_KEY, service, characteristic)) {
             if (value.length > 0) {
                 //接受数据格式:第一个字节为请求id，后续为数据内容
                 //返回数据：第一个字节为请求id，后续为数据内容
@@ -732,7 +726,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
                 for (int i = 1; i < value.length; i++) {
                     requestingData[i - 1] = value[i];
                 }
-                byte[] response = onRequest(device, characteristic, service, requestingData);
+                byte[] response = onRequest(device, service, characteristic, requestingData);
                 byte[] finalResponse = new byte[response.length + 1];
                 finalResponse[0] = requestId;
                 for (int i = 0; i < response.length; i++) {
@@ -740,30 +734,37 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
                 }
                 //将请求结果发送给主设备
                 try {
-                    this.notifyCharacteristicChanged(device, characteristic, service, finalResponse, true);
+                    this.notifyCharacteristicChanged(device, service, characteristic, finalResponse, true);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
             return;
         }
-        if (isBelongCharacteristic(REQUEST_LARGE_C_KEY, characteristic, service)) {
+        if (isBelongCharacteristic(WRITE_LARGE_C_KEY, service, characteristic)) {
 
             return;
         }
-        if (isBelongCharacteristic(WRITE_LARGE_C_KEY, characteristic, service)) {
+        if (isBelongCharacteristic(REQUEST_LARGE_C_KEY, service, characteristic)) {
 
             return;
         }
-        if (isBelongCharacteristic(INDICATE_LARGE_C_KEY, characteristic, service)) {
+        if (isBelongCharacteristic(INDICATE_LARGE_C_KEY, service, characteristic)) {
 
             return;
         }
         BleCentralDeviceBase centralDevice = getDevice(device);
         if (centralDevice != null) {
-            centralDevice.onWrite(characteristic, service, value);
+            centralDevice.onWrite(service, characteristic, value);
         }
     }
+
+    private final HashMap<String, BytesReceiver> bytesReceivers = new HashMap<>();
+
+    private void receiveBytes(BluetoothDevice device, UUID service, UUID characteristic, byte[] pack) {
+
+    }
+
 
     /**
      * 收到了有应答的请求
@@ -774,10 +775,10 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * @param value
      * @return
      */
-    protected byte[] onRequest(BluetoothDevice device, UUID characteristic, UUID service, byte[] value) {
+    protected byte[] onRequest(BluetoothDevice device, UUID service, UUID characteristic, byte[] value) {
         BleCentralDeviceBase centralDevice = getDevice(device);
         if (centralDevice != null) {
-            return centralDevice.onRequest(characteristic, service, value);
+            return centralDevice.onRequest(service, characteristic, value);
         }
         return new byte[]{0};
     }
@@ -792,7 +793,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * @param confirm
      * @throws Exception
      */
-    public void notifyCharacteristicChanged(BluetoothDevice device, UUID characteristic, UUID service, byte[] value, boolean confirm) throws Exception {
+    public void notifyCharacteristicChanged(BluetoothDevice device, UUID service, UUID characteristic, byte[] value, boolean confirm) throws Exception {
         BluetoothGattServer serverTarget = this.getServer(service);
         BluetoothGattService serviceTarget = this.serviceMap.get(service);
         BluetoothGattCharacteristic characteristicTarget = serviceTarget.getCharacteristic(characteristic);
@@ -863,18 +864,18 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
 
         @Override
         public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattCharacteristic characteristic) {
-            if (!doFilterDevice(device, characteristic.getUuid())) {
+            if (!doFilterDevice(device, service, characteristic.getUuid())) {
                 disconnect(device);
                 return;
             }
             BleLogger.log(TAG, String.format("onCharacteristicReadRequest:%s,%s,%s,%s,%s", device.getName(), device.getAddress(), requestId, offset, characteristic.getUuid()));
-            byte[] responseData = self.onCharacteristicReadRequest(device, characteristic.getUuid(), service);
+            byte[] responseData = self.onCharacteristicReadRequest(device, service, characteristic.getUuid());
             server.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, responseData);// 响应客户端
         }
 
         @Override
         public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic, boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
-            if (!doFilterDevice(device, characteristic.getUuid())) {
+            if (!doFilterDevice(device, service, characteristic.getUuid())) {
                 disconnect(device);
                 return;
             }
@@ -884,7 +885,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
             if (responseNeeded) {
                 server.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, null);
             }
-            self.onCharacteristicWriteRequest(device, characteristic.getUuid(), service, value);
+            self.onCharacteristicWriteRequest(device, service, characteristic.getUuid(), value);
         }
 
         @Override

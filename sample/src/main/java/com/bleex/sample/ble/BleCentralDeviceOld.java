@@ -7,7 +7,7 @@ import com.bleex.old.BleCentralDeviceBaseOld;
 import com.bleex.BleLogger;
 import com.bleex.old.BleServiceBaseOld;
 import com.bleex.old.helpers.BytesWriter;
-import com.bleex.old.utils.BytesUtil;
+import com.bleex.utils.BytesUtil;
 
 import java.util.UUID;
 

@@ -24,9 +24,9 @@ import android.os.ParcelUuid;
 import com.bleex.BleCentralDeviceChangedCallback;
 import com.bleex.BleLogger;
 import com.bleex.BluetoothStateChangedCallback;
-import com.bleex.old.helpers.BytesRecevier;
+import com.bleex.helpers.BytesReceiver;
 import com.bleex.old.helpers.BytesWriter;
-import com.bleex.old.utils.BytesUtil;
+import com.bleex.utils.BytesUtil;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -770,7 +770,7 @@ public class BleServiceBaseOld<T extends BleCentralDeviceBaseOld> {
         return new byte[]{0};
     }
 
-    private final HashMap<String, BytesRecevier> bytesReceivers = new HashMap<>();
+    private final HashMap<String, BytesReceiver> bytesReceivers = new HashMap<>();
 
     private void receiveBytes(BluetoothDevice device, UUID characteristicUuid, byte[] pack) {
         byte requestIndex = -1;
@@ -781,14 +781,14 @@ public class BleServiceBaseOld<T extends BleCentralDeviceBaseOld> {
         }
 
         String key = device.getAddress() + "-" + characteristicUuid.toString() + "_" + Integer.toHexString(requestIndex & 0xFF);
-        BytesRecevier receiver = null;
+        BytesReceiver receiver = null;
         if (bytesReceivers.containsKey(key)) {
             receiver = bytesReceivers.get(key);
         } else {
             //没有这个接收器，证明原则上应该是首包才对，如果不是首包还没找到接收器，则直接忽视这个包，应该是之前包的遗漏部分。
             if (pack.length >= 3 && pack[1] == 120 && pack[2] == 110) {
-                BytesRecevier newReceiver = new BytesRecevier(key, requestIndex, device, characteristicUuid);
-                newReceiver.setCallback(new BytesRecevier.BytesReceiveCallback() {
+                BytesReceiver newReceiver = new BytesReceiver(key, requestIndex, device, characteristicUuid);
+                newReceiver.setCallback(new BytesReceiver.BytesReceiveCallback() {
                     private void sendResult(BluetoothDevice device, UUID characteristicUuid, byte requestIndex, byte result) {
                         BluetoothGattCharacteristic characteristic = getCharacteristic(characteristicUuid);
                         notifyCharacteristicChanged(device, characteristic, new byte[]{120, 120, requestIndex, result}, false, null);
