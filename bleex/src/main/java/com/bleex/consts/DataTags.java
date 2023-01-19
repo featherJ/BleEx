@@ -13,7 +13,7 @@ public class DataTags {
     /**
      * S->M的长数据写的标签
      */
-    public static byte[] SM_WRITE_LARGE = new byte[]{110, 100};
+    public static byte[] SM_INDICATE_LARGE = new byte[]{110, 100};
     /**
      * M->S的长数据请求的标签
      */

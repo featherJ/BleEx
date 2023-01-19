@@ -72,8 +72,8 @@ public class BytesWriter {
                 //请求号
                 pack[0] = writeIndex;
                 //起始包标识
-                pack[1] = DataTags.SM_WRITE_LARGE[0];
-                pack[2] = DataTags.SM_WRITE_LARGE[1];
+                pack[1] = DataTags.SM_INDICATE_LARGE[0];
+                pack[2] = DataTags.SM_INDICATE_LARGE[1];
                 //数据长度
                 ByteBuffer bufferPack = ByteBuffer.wrap(pack);
                 bufferPack.order(ByteOrder.BIG_ENDIAN);
