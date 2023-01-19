@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Context;
 
+import com.bleex.BleCentralDeviceBase;
 import com.bleex.BleServicesBase;
 import com.bleex.utils.BytesUtil;
 
@@ -20,6 +21,10 @@ public class BleServices extends BleServicesBase<BleCentralDevice> {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    protected BleCentralDeviceBase createCentralDevice(BluetoothDevice device) {
+        return new BleCentralDevice(device, this, this.context);
     }
 
     public void startAdvertising() {

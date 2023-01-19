@@ -898,7 +898,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      */
     public void notifyCharacteristicChanged(BluetoothDevice device, UUID service, UUID characteristic, byte[] value, boolean confirm) throws Exception {
         BluetoothGattServer serverTarget = this.getServer(service);
-        BluetoothGattService serviceTarget = this.serviceMap.get(service);
+        BluetoothGattService serviceTarget = this.serviceMap.get(service.toString());
         BluetoothGattCharacteristic characteristicTarget = serviceTarget.getCharacteristic(characteristic);
         characteristicTarget.setValue(value);
         serverTarget.notifyCharacteristicChanged(device, characteristicTarget, confirm);
@@ -932,7 +932,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
         if (isBelongCharacteristic(REQUEST_LARGE_C_KEY, service, characteristic) || isBelongCharacteristic(INDICATE_LARGE_C_KEY, service, characteristic)) {
             byte writeIndex = getIndex("writeBytes");
             String key = BytesWriter.createKey(device, service, characteristic, writeIndex);
-            BluetoothGattService serviceTarget = this.serviceMap.get(service);
+            BluetoothGattService serviceTarget = this.serviceMap.get(service.toString());
             BluetoothGattCharacteristic characteristicTarget = serviceTarget.getCharacteristic(characteristic);
             BytesWriter writer = new BytesWriter(writeIndex, getPackageSize(), key, device, this, service, characteristic);
             writer.writeBytes(data);
