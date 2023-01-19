@@ -39,7 +39,7 @@ allprojects {
 在项目的 `build.gradle` 中添加依赖：
 ```gradle
 dependencies {
-    implementation 'com.github.featherJ:BleEx:0.9.6'
+    implementation 'com.github.featherJ:BleEx:0.9.8'
 }
 ```
 
@@ -50,69 +50,109 @@ dependencies {
 public class BleCentralDevice extends BleCentralDeviceBase
 ```
 
-在设备子类中，可以重写如`onCharacteristicReadRequest`, `onCharacteristicWriteRequest`, `onRequest`, `onRequestBytes`, `onReceiveBytes` 等方法来完成自己的业务逻辑。
+在设备子类中，可以重写如`onRead`, `onWrite`, `onRequest`, `onRequestLarge`, `onWriteLarge` 等方法来完成自己的业务逻辑。
 
-服务要继承自 `BleServiceBase` 实现自己的 BLE 服务，并指定对应的中心设备类型，如：
+服务要继承自 `BleServicesBase` 实现自己的 BLE 服务，并指定对应的中心设备类型，如：
 ```java
-public class BleService extends BleServiceBase<BleCentralDevice>
+public class BleServices extends BleServicesBase<BleCentralDevice>
 ```
 
 在服务子类中，最重要的是重写 `createCentralDevice` 方法, 实现对于特定中心设备的实例化方法，如：
 ```java
 @Override
 protected BleCentralDeviceBase createCentralDevice(BluetoothDevice device) {
-    return new BleCentralDevice(device, this);
+    return new BleCentralDevice(device, this, this.context);
 }
 ```
 
 ### 启动服务
-需要先添加好服务所需要的所有特征之后，在启动服务，可以通过如下方法来添加服务所支持的特征：
+首先需要添加服务
 ```java
-// 添加一个普通的特征，如果添加的特征为通知，则内部会自动增加通知所需的描述
-BluetoothGattCharacteristic addCharacteristic(UUID uuid, int properties, int permissions);
-// 添加一个支持数据请求的特征，数据长度受 mtu 限制。
-BluetoothGattCharacteristic addRequestCharacteristic(UUID uuid);
-// 添加一个接受长数据的特征，数据长度不受 mtu 限制。
-BluetoothGattCharacteristic addReceiveBytesCharacteristic(UUID uuid);
-// 添加一个写长数据到中心设备的特征，数据长度不受 mtu 限制。
-BluetoothGattCharacteristic addWriteBytesCharacteristic(UUID uuid);
-// 添加一个支持长数据请求的特征，数据长度不受 mtu 限制。
-BluetoothGattCharacteristic addRequestBytesCharacteristic(UUID uuid);
-```
-当初始化好所有的特征之后，可以调用如下方法启动广播：
-```java
-void startAdvertising(boolean includeName, byte[] manufacturerData, boolean connectable);
-```
-以及通过如下方法启动服务：
-```java
-void startService();
+// 添加并启动一个服务
+addService(UUID service);
+// 添加一个服务
+addService(UUID service, boolean start);
 ```
 
+再先添加好服务所需要的所有特征，可以通过如下方法来添加服务所支持的特征：
+```java
+// 添加一个普通的特征，如果添加的特征为通知，则内部会自动增加通知所需的描述
+BluetoothGattCharacteristic addCharacteristic(UUID service, UUID characteristic, int properties, int permissions);
+// 添加一个中心设备向外围设备请求一个MTU以内数据的特征
+BluetoothGattCharacteristic addRequestCharacteristic(UUID service, UUID characteristic);
+// 添加一个中心设备向外围设备请求一个长数据的特征
+BluetoothGattCharacteristic addRequestLargeCharacteristic(UUID service, UUID characteristic);
+// 添加一个中心设备向外围设备写入一个长数据的特征
+BluetoothGattCharacteristic addWriteLargeCharacteristic(UUID service, UUID characteristic);
+// 添加一个外围设备向中心设备指示一个长数据的特征
+BluetoothGattCharacteristic addIndicateLargeCharacteristic(UUID service, UUID characteristic);
+```
+当初始化好所有的特征之后，可以调用如下方法启动或停止广播：
+```java
+// 启动或更新BLE蓝牙广播(广告)
+void startAdvertising(boolean includeName, boolean includeFirstService, byte[] manufacturerData, boolean connectable);
+// 停止BLE蓝牙广播(广告)
+void stopAdvertising();
+```
+以及通过如下方法启动或关闭服务：
+```java
+// 启动该管理器，需要确保蓝牙开启的状态下才能启动
+void launch();
+// 停止该管理器
+void stop()
+```
+可以通过如下方法监听蓝牙的开启状态变化，并在对应的状态下启动或关闭该蓝牙服务
+```java
+bleService.addBluetoothStateChangedListener(new BluetoothStateChangedCallback() {
+    @Override
+    public void onStateChanged(boolean enable) {
+        if (enable) {
+            try {
+                bleService.startAdvertising();
+                bleService.launch();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            bleService.stopAdvertising();
+            bleService.stop();
+        }
+    }
+});
+if (bleService.isBluetoothEnable()) {
+    try {
+        bleService.startAdvertising();
+        bleService.launch();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+```
 ### 支持中心设备的数据读取
-需要重写 `BleCentralDeviceBase` 的 `onCharacteristicReadRequest` 方法，在重写的方法中完成自己的业务逻辑。如：
+需要重写 `BleCentralDeviceBase` 的 `onRead` 方法，在重写的方法中完成自己的业务逻辑。如：
 ```java
 @Override
-protected byte[] onCharacteristicReadRequest(UUID characteristicUuid) {
+protected byte[] onRead(UUID service, UUID characteristic) {
     // 判断是指定的特征，该特征需要已经被添加到了服务中
-    if (characteristicUuid.equals(XXX)) {
+    if (characteristic.equals(XXX)) {
         byte[] data ...
         // 完成自己要返回给中心设备的数据内容
         return data;
     }
-    return super.onCharacteristicReadRequest(characteristicUuid);
+    return super.onRead(service, characteristic);
 }
 ```
 
 ### 支持中心设备的数据写入
-需要重写 `BleCentralDeviceBase` 的 `onCharacteristicWriteRequest` 方法，在重写的方法中完成自己的业务逻辑。如：
+需要重写 `BleCentralDeviceBase` 的 `onWrite` 方法，在重写的方法中完成自己的业务逻辑。如：
 ```java
 @Override
-protected void onCharacteristicWriteRequest(UUID characteristicUuid, byte[] requestingData) {
+protected void onWrite(UUID service, UUID characteristic, byte[] data) {
     // 判断是否是写入到了某个指定特征，该特征需要已经被添加到了服务中
-    if (characteristicUuid.equals(XXX)) {
-        // requestingData 就是中心设备写入的数据
+    if (characteristic.equals(XXX)) {
+        // data 就是中心设备写入的数据
     }
-    super.onCharacteristicWriteRequest(characteristicUuid, requestingData);
+    super.onWrite(service, characteristic, data);
 }
 ```
 
@@ -120,68 +160,56 @@ protected void onCharacteristicWriteRequest(UUID characteristicUuid, byte[] requ
 需要重写 `BleCentralDeviceBase` 的 `onRequest` 方法，在重写的方法中完成自己的业务逻辑。如：
 ```java
 @Override
-protected byte[] onRequest(UUID characteristicUuid, byte[] requestingData) {
+protected byte[] onRequest(UUID service, UUID characteristic, byte[] data) {
     // 判断是否是对某个指定特征的请求，该特征需要已经被添加到了服务中
-    if (characteristicUuid.equals(XXX)) {
-        // requestingData 是中心设备请求的数据
+    if (characteristic.equals(XXX)) {
+        // data 是中心设备请求的数据
         byte[] data ...
         // 完成自己要返回给中心设备的数据内容
         return data;
     }
-    return super.onRequest(characteristicUuid, requestingData);
+    return super.onRequest(service, characteristic, data);
 }
 ```
 
 ### 支持中心设备的长数据请求
-长数据，不受到mtu的限制。需要重写 `BleCentralDeviceBase` 的 `onRequestBytes` 方法，在重写的方法中完成自己的业务逻辑。如：
+长数据，不受到mtu的限制。需要重写 `BleCentralDeviceBase` 的 `onRequestLarge` 方法，在重写的方法中完成自己的业务逻辑。如：
 ```java
 @Override
-protected byte[] onRequestBytes(UUID characteristicUuid, byte[] requestingData) {
+protected byte[] onRequestLarge(UUID service, UUID characteristic, byte[] data) {
     // 判断是否是对某个指定特征的请求，该特征需要已经被添加到了服务中
-    if (characteristicUuid.equals(XXX)) {
-        // requestingData 是中心设备请求的数据
+    if (characteristic.equals(XXX)) {
+        // data 是中心设备请求的数据
         byte[] data ...
         // 完成自己要返回给中心设备的数据内容
         return data;
     }
-    return super.onRequestBytes(characteristicUuid, requestingData);
+    return super.onRequestLarge(service, characteristic, data);
 }
 ```
 
 ### 支持接受中心设备的长数据
-长数据，不受到mtu的限制。需要重写 `BleCentralDeviceBase` 的 `onReceiveBytes` 方法，在重写的方法中完成自己的业务逻辑。如：
+长数据，不受到mtu的限制。需要重写 `BleCentralDeviceBase` 的 `onWriteLarge` 方法，在重写的方法中完成自己的业务逻辑。如：
 ```java
 @Override
-protected void onReceiveBytes(UUID characteristicUuid, byte[] receivedData) {
+protected void onWriteLarge(UUID service, UUID characteristic, byte[] data) {
     // 判断是否是写入到了某个指定特征，该特征需要已经被添加到了服务中
-    if (characteristicUuid.equals(XXX)) {
-        // receivedData 就是中心设备写入的长数据
+    if (characteristic.equals(XXX)) {
+        // data 就是中心设备写入的长数据
     }
-    super.onReceiveBytes(characteristicUuid, receivedData);
+    super.onWriteLarge(service, characteristic, data);
 }
 ```
 
 ### 通知到中心设备数据
-需要调用 `BleCentralDeviceBase` 的 `notifyCharacteristic` 方法来发送通知：
+需要调用 `BleCentralDeviceBase` 的 `notify`/`indicate` 方法来发送通知/指示：
 ```java
-void notifyCharacteristic(UUID characteristicUuid, byte[] data);
+void notify(UUID service, UUID characteristic, byte[] data);
+void indicate(UUID service, UUID characteristic, byte[] data);
 ```
 
 ### 向中心设备写入长数据
-长数据的写入，不受到 mtu 的限制。需要调用 `BleCentralDeviceBase` 的 `writeBytes` 向中心设备写入数据，并可以监听是数据的写入状态：
+长数据的写入，不受到 mtu 的限制。需要调用 `BleCentralDeviceBase` 的 `indicateLarge` 向中心设备指示长数据：
 ```java
-writeBytes(UUID characteristicUuid, byte[] data, new BytesWriter.WriteBytesCallback() {
-    @Override
-    public void onSent() {
-        // 写入数据完成
-    }
-    @Override
-    public void onError() {
-        // 写入数据错误
-    }
-    @Override
-    public void onTimeout() {
-        // 写入数据超时
-    }
-});
+void indicateLarge(UUID service, UUID characteristic, byte[] data);
 ```

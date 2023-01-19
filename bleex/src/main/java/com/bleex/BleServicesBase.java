@@ -177,7 +177,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
     }
 
     /**
-     * 启动该管理器，用于检测到蓝牙
+     * 启动该管理器，需要确保蓝牙开启的状态下才能启动
      */
     public void launch() throws Exception {
         if (!isBluetoothEnable()) {
@@ -219,7 +219,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
 
     private List<UUID> services = new ArrayList<>();
     /**
-     * 添加并启动一个服务（不可与主服务相同）
+     * 添加并启动一个服务
      *
      * @param service
      */
@@ -228,7 +228,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
     }
 
     /**
-     * 添加一个服务（不可与主服务相同）
+     * 添加一个服务
      * @param service
      * @param start
      * @throws Exception
