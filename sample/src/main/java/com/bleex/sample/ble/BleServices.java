@@ -45,8 +45,8 @@ public class BleServices extends BleServicesBase<BleCentralDevice> {
                 BluetoothGattCharacteristic.PROPERTY_READ,
                 BluetoothGattCharacteristic.PERMISSION_READ);
         this.addCharacteristic(BleUUIDs.SERVICE_1, BleUUIDs.WRITE_TEST,
-                BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE,
-                BluetoothGattCharacteristic.PERMISSION_WRITE);
+                BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE,
+                BluetoothGattCharacteristic.PERMISSION_WRITE| BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
         this.addCharacteristic(BleUUIDs.SERVICE_2, BleUUIDs.NOTIFY_TEST,
                 BluetoothGattCharacteristic.PROPERTY_NOTIFY,
                 BluetoothGattCharacteristic.PERMISSION_READ | BluetoothGattCharacteristic.PERMISSION_WRITE);

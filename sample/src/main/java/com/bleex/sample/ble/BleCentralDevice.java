@@ -38,7 +38,7 @@ public class BleCentralDevice extends BleCentralDeviceBase {
 
     @Override
     protected void onWrite(UUID service, UUID characteristic, byte[] data) {
-        BleLogger.log(TAG, "onWrite service:" + service + " characteristic:" + characteristic + " ");
+        BleLogger.log(TAG, "onWrite service:" + service + " characteristic:" + characteristic + " "+ BytesUtil.bytesToString(data,false));
         if (service.equals(BleUUIDs.SERVICE_1) && characteristic.equals(BleUUIDs.WRITE_TEST)) {
             //Test indicate to central device
             byte[] datas = new byte[10];
