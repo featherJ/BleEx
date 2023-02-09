@@ -42,13 +42,13 @@ import java.util.UUID;
 public class BleServicesBase<T extends BleCentralDeviceBase> {
     private static final String TAG = "BleServicesBase";
 
-    private final BluetoothManager bluetoothManager;
-    private final BluetoothAdapter bluetoothAdapter;
+    private BluetoothManager bluetoothManager;
+    private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeAdvertiser bluetoothLeAdvertiser; // BLE广播
-    protected final Context context;
+    protected Context context;
 
     protected BleServicesBase self;
-
+    BroadcastReceiver broadcastReceiver;
     private int packageSize = 20;
 
     /**
@@ -65,10 +65,24 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
         this.bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         this.bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        BroadcastReceiver broadcastReceiver = new BluetoothStateBroadcastReceive();
+        broadcastReceiver = new BluetoothStateBroadcastReceive();
         IntentFilter intent = new IntentFilter();
         intent.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         context.registerReceiver(broadcastReceiver, intent);
+    }
+
+    /**
+     * 释放，如果释放时服务或广播未关闭，则会先行关闭广播与服务之后再进行释放
+     */
+    public void dispose() {
+        stopAdvertising();
+        stop();
+        bluetoothManager = null;
+        bluetoothAdapter = null;
+        context.unregisterReceiver(broadcastReceiver);
+        broadcastReceiver = null;
+        context = null;
+        self = null;
     }
 
     class BluetoothStateBroadcastReceive extends BroadcastReceiver {
@@ -176,6 +190,7 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
         firsrCallback.isMain = true;
     }
 
+    private boolean running = false;
     /**
      * 启动该管理器，需要确保蓝牙开启的状态下才能启动
      */
@@ -183,6 +198,10 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
         if (!isBluetoothEnable()) {
             throw new Exception("Cannot launch while Bluetooth is disable");
         }
+        if(running){
+            return;
+        }
+        running = true;
         serverMap = new HashMap<>();
         for (int i = 0; i < startedServiceUuids.size(); i++) {
             UUID service = startedServiceUuids.get(i);
@@ -194,6 +213,10 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * 停止该管理器
      */
     public void stop() {
+        if(!running){
+            return;
+        }
+        running = false;
         cleanAllReceivers();
         disconnectAll();
         for (int i = 0; i < startedServiceUuids.size(); i++) {
@@ -376,6 +399,9 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
      * 停止BLE蓝牙广播(广告)
      */
     public void stopAdvertising() {
+        if(!isAdvertising){
+            return;
+        }
         bluetoothLeAdvertiser.stopAdvertising(this.advertiseCallback);
         isAdvertising = false;
     }
