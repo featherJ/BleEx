@@ -28,7 +28,7 @@ public class BleServices extends BleServicesBase<BleCentralDevice> {
     }
 
     public void startAdvertising() {
-        this.startAdvertising(false, true, Constants.SERVICE_MANUFACTURER_TAG, true);
+        this.startAdvertising(false, true, Constants.SERVICE_MANUFACTURER_TAG,null, true);
     }
 
     private void initServices() throws Exception {

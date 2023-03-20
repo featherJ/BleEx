@@ -352,12 +352,13 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
     /**
      * 启动或更新BLE蓝牙广播(广告)
      *
-     * @param includeName         是否包含蓝牙名称
-     * @param includeFirstService 是否包含第一个服务的uuid
-     * @param manufacturerData    包含的设备信息
-     * @param connectable         是否可以连接
+     * @param includeName               是否包含蓝牙名称
+     * @param includeFirstService       是否包含第一个服务的uuid
+     * @param advertiseManufacturerData 广播的设备数据
+     * @param scanManufacturerData      扫描时的设备信息
+     * @param connectable               是否可以连接
      */
-    public void startAdvertising(boolean includeName, boolean includeFirstService, byte[] manufacturerData, boolean connectable) {
+    public void startAdvertising(boolean includeName, boolean includeFirstService, byte[] advertiseManufacturerData, byte[] scanManufacturerData, boolean connectable) {
         if (isAdvertising) {
             stopAdvertising();
         }
@@ -376,14 +377,19 @@ public class BleServicesBase<T extends BleCentralDeviceBase> {
             //多个uuid会导致长度过长，广播失败
             advertiseBuider.addServiceUuid(new ParcelUuid(this.services.get(0)));
         }
+        //附加信息
+        if (advertiseManufacturerData != null) {
+            advertiseBuider.addManufacturerData(1,advertiseManufacturerData);
+        }
+
         AdvertiseData advertiseData = advertiseBuider.build();
 
         AdvertiseData scanResponse = null;
         //附加信息
-        if (manufacturerData != null) {
+        if (scanManufacturerData != null) {
             // 扫描响应数据(可选，当客户端扫描时才发送)
             scanResponse = new AdvertiseData.Builder()
-                    .addManufacturerData(1, manufacturerData)
+                    .addManufacturerData(2, scanManufacturerData)
                     .build();
         }
         this.bluetoothLeAdvertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
